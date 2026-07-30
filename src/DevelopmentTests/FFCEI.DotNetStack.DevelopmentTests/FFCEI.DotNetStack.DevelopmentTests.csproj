@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);TEST_MESSAGE_BROKER;RUN_SERIALIZATION_TESTS;TEST_EFCORE;TEST_EFCORE_USE_INTERFACES;TEST_EFCORE_MAPPINGS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.Logging\FFCEI.DotNetStack.Logging.csproj" />
+    <ProjectReference Include="..\FFCEI.DotNetStack.DevelopmentTests.Library\FFCEI.DotNetStack.DevelopmentTests.Library.csproj" />
+  </ItemGroup>
+
+</Project>

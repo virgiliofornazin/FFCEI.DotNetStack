@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\FFCEI.DotNetStack.Caching\FFCEI.DotNetStack.Caching.csproj" />
+    <ProjectReference Include="..\FFCEI.DotNetStack.EntityFramework\FFCEI.DotNetStack.EntityFramework.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="JavaScript\DeviceIdentification.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

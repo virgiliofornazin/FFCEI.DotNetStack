@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/files/">
+    <File Path=".editorconfig" />
+    <File Path="TODO.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/FFCEI.DotNetStack.AccessControl/FFCEI.DotNetStack.AccessControl.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Caching/FFCEI.DotNetStack.Caching.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Compliance/FFCEI.DotNetStack.Compliance.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Secrets/FFCEI.DotNetStack.Secrets.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Configuration/FFCEI.DotNetStack.Configuration.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Dependencies/FFCEI.DotNetStack.Dependencies.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.EntityFramework/FFCEI.DotNetStack.EntityFramework.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Framework/FFCEI.DotNetStack.Framework.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Logging/FFCEI.DotNetStack.Logging.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.MessageBroker/FFCEI.DotNetStack.MessageBroker.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Microservices/FFCEI.DotNetStack.Microservices.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Models/FFCEI.DotNetStack.Models.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.Serialization/FFCEI.DotNetStack.Serialization.csproj" />
+    <Project Path="src/FFCEI.DotNetStack.WebApi/FFCEI.DotNetStack.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/src/DevelopmentTests/">
+    <Project Path="src/DevelopmentTests/FFCEI.DotNetStack.DevelopmentTests.Library/FFCEI.DotNetStack.DevelopmentTests.Library.csproj" />
+    <Project Path="src/DevelopmentTests/FFCEI.DotNetStack.DevelopmentTests/FFCEI.DotNetStack.DevelopmentTests.csproj" />
+  </Folder>
+</Solution>

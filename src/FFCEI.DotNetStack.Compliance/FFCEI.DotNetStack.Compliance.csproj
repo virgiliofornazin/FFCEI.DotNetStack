@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Compliance.Abstractions" Version="10.8.0" />
+    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" Version="10.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FFCEI.DotNetStack.Dependencies\FFCEI.DotNetStack.Dependencies.csproj" />
+  </ItemGroup>
+
+</Project>

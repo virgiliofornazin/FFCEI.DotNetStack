@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <AnalysisMode>All</AnalysisMode>
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);TEST_MESSAGE_BROKER;RUN_SERIALIZATION_TESTS;TEST_EFCORE;TEST_EFCORE_USE_INTERFACES;TEST_EFCORE_MAPPINGS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.Configuration\FFCEI.DotNetStack.Configuration.csproj" />
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.Compliance\FFCEI.DotNetStack.Compliance.csproj" />
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.Secrets\FFCEI.DotNetStack.Secrets.csproj" />
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.EntityFramework\FFCEI.DotNetStack.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.MessageBroker\FFCEI.DotNetStack.MessageBroker.csproj" />
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.Serialization\FFCEI.DotNetStack.Serialization.csproj" />
+  </ItemGroup>
+
+</Project>

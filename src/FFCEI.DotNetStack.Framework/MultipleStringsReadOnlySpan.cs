@@ -6,7 +6,7 @@ namespace FFCEI.DotNetStack.Framework;
 public struct MultipleStringsReadOnlySpan
     : IDisposable, IEquatable<MultipleStringsReadOnlySpan>
 {
-    private sealed class BuffersStoage
+    private sealed class BuffersStorage
         : IDisposable
     {
         private ReadOnlyMemory<char>[]? _blocks;
@@ -254,17 +254,17 @@ public struct MultipleStringsReadOnlySpan
         }
     }
 
-    private BuffersStoage? _storage;
+    private BuffersStorage? _storage;
     private bool _disposed;
 
     public readonly int Length => _storage?.Length ?? 0;
     public readonly int Count => _storage?.Count ?? 0;
 
-    private BuffersStoage EnsureStorage()
+    private BuffersStorage EnsureStorage()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        return _storage ??= new BuffersStoage();
+        return _storage ??= new BuffersStorage();
     }
 
     public void Add(string? block)

@@ -134,7 +134,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
     private static async Task ExpireSessionsInDatabase(List<SessionModel> sessions,
         ScopeAndServiceResult<SessionManagerEntityModelRepositoryContainer> scopeAndService,
-        uint maximumSessions, CancellationToken cancellationToken)
+        long maximumSessions, CancellationToken cancellationToken)
     {
         if (sessions.Count > maximumSessions)
         {
@@ -142,14 +142,13 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
             while (expired > 0)
             {
-                int taken = expired > int.MaxValue ? int.MaxValue : (int)expired;
-
-                expired -= taken;
-
-                var expiredSessions = sessions.Take(taken);
+                var take = expired > int.MaxValue ? int.MaxValue : expired;
+                var expiredSessions = sessions.Take((int)take);
 
                 await scopeAndService.RequiredService.Sessions.DeleteManyExistingAsync(expiredSessions, saveChanges: false,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                expired -= take;
             }
         }
     }

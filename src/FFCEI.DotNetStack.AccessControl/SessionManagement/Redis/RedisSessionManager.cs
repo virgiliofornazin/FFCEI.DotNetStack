@@ -5,7 +5,6 @@ using FFCEI.DotNetStack.Framework;
 using FFCEI.DotNetStack.Models;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using System.Globalization;
 
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.Redis;
 
@@ -16,41 +15,113 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
     private readonly RedisResilientConnectionFactory _connectionFactory = new(connectionString);
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-    private static Session Map(RedisValue[] results)
+    private const string AttributeFieldPrefix = "Attributes:";
+
+    private static string GetRequiredField(Dictionary<string, RedisResult> sessionFields, string fieldName)
+        => sessionFields.TryGetValue(fieldName, out var value) ? value.ToString() : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
+
+    private static long GetRequiredInt64Field(Dictionary<string, RedisResult> sessionFields, string fieldName)
+        => sessionFields.TryGetValue(fieldName, out var value) ? (long)value : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
+
+    private static string? GetOptionalField(Dictionary<string, RedisResult> sessionFields, string fieldName)
+        => sessionFields.TryGetValue(fieldName, out var value) ? value.ToString() : null;
+
+    private static int? GetOptionalInt32Field(Dictionary<string, RedisResult> sessionFields, string fieldName)
+        => sessionFields.TryGetValue(fieldName, out var value) ? (int?)value : null;
+
+    private static long? GetOptionalInt64Field(Dictionary<string, RedisResult> sessionFields, string fieldName)
+        => sessionFields.TryGetValue(fieldName, out var value) ? (long?)value : null;
+
+    private static Dictionary<string, string> ExtractAttributes(Dictionary<string, RedisResult> sessionFields)
     {
-        // TODO implementar...
+        var attributes = new Dictionary<string, string>();
+
+        foreach (var sessionField in sessionFields)
+        {
+            if (sessionField.Key.StartsWith(AttributeFieldPrefix, StringComparison.Ordinal))
+            {
+                attributes[sessionField.Key[AttributeFieldPrefix.Length..]] = sessionField.Value.ToString();
+            }
+        }
+
+        return attributes;
+    }
+
+    private static Session Map(Dictionary<string, RedisResult> sessionFields)
+    {
+        var deviceType = Enum.TryParse<DeviceIdentificationType>(GetOptionalField(sessionFields, "DeviceIdentification:DeviceType"), out var parsedDeviceType)
+            ? parsedDeviceType
+            : DeviceIdentificationType.Unknown;
 
         var result = new Session()
         {
-            TenantId = results[3].ToString(),
-            AccountId = results[4].ToString(),
-            ExternalUniqueId = ValueConversions.GuidFromString(results[5].ToString()),
-            Token = results[6].ToString(),
-            RefreshToken = results[7].ToString(),
+            TenantId = GetRequiredField(sessionFields, "TenantId"),
+            AccountId = GetOptionalField(sessionFields, "AccountId") ?? string.Empty,
+            ExternalUniqueId = ValueConversions.GuidFromString(GetRequiredField(sessionFields, "ExternalUniqueId")),
+            Token = GetRequiredField(sessionFields, "Token"),
+            RefreshToken = GetRequiredField(sessionFields, "RefreshToken"),
             DeviceIdentification = new DeviceIdentification()
             {
-                UserAgent = results[8].ToString(),
-                Application = results[9].ToString(),
-                OperatingSystem = results[10].ToString(),
-                /*
-                MultiTouchPoints = results[11].ToString(),
-                IdentificationType = results[12].ToString(),
-                Mobile = results[13].ToString(),
-                */
-            }
-            /*
-            ExpiresTimestamp = results[14].ToString(),
-            InactivityExpirationInterval = results[15].ToString(),
-            FinalizedTimestamp = results[16].ToString(),
-            CreatedTimestamp = results[17].ToString(),
-            UpdatedTimestamp = results[18].ToString(),
-            */
-            /*
-            Attributes = attributes.ToDictionary(attribute => attribute.AttributeName, item => item.AttributeValue)
-            */
+                UserAgent = GetOptionalField(sessionFields, "DeviceIdentification:UserAgent"),
+                Application = GetOptionalField(sessionFields, "DeviceIdentification:Application"),
+                OperatingSystem = GetOptionalField(sessionFields, "DeviceIdentification:OperatingSystem"),
+                MultiTouchPoints = GetOptionalInt32Field(sessionFields, "DeviceIdentification:MultiTouchPoints"),
+                DeviceType = deviceType,
+                Mobile = GetOptionalInt32Field(sessionFields, "DeviceIdentification:Mobile") is int mobileValue && (mobileValue != 0)
+            },
+            ExpiresTimestamp = ValueConversions.TryDateTimeOffsetUtcFromUnixMilliseconds(GetOptionalInt64Field(sessionFields, "ExpiresTimestamp")),
+            InactivityExpirationInterval = ValueConversions.TryTimeSpanFromMilliseconds(GetOptionalInt64Field(sessionFields, "InactivityExpirationInterval")),
+            FinalizedTimestamp = ValueConversions.TryDateTimeOffsetUtcFromUnixMilliseconds(GetOptionalInt64Field(sessionFields, "FinalizedTimestamp")),
+            CreatedTimestamp = ValueConversions.DateTimeOffsetUtcFromSerialWithMilliseconds(GetRequiredInt64Field(sessionFields, "CreatedTimestamp")),
+            UpdatedTimestamp = ValueConversions.DateTimeOffsetUtcFromSerialWithMilliseconds(GetRequiredInt64Field(sessionFields, "UpdatedTimestamp")),
+            Attributes = ExtractAttributes(sessionFields)
         };
 
         return result;
+    }
+
+    private static async Task CollectOverflowExternalUniqueIdsAsync(IDatabase redisDatabase, string indexKey, long maxSessions,
+        Dictionary<Guid, string> sessions)
+    {
+        var luaScript = LuaScript.Prepare(@"
+            local ExternalUniqueIds = redis.call('ZRANGE', @IndexKey, 0, -1)
+            local Overflow = #ExternalUniqueIds - @MaxCount
+
+            if Overflow <= 0 then
+                return {}
+            end
+
+            local Result = {}
+
+            for i = 1, Overflow do
+                local ExternalUniqueId = ExternalUniqueIds[i]
+                local TenantId = redis.call('HGET', 'idx:sessions:tenants', ExternalUniqueId)
+
+                if TenantId then
+                    table.insert(Result, ExternalUniqueId)
+                    table.insert(Result, TenantId)
+                end
+            end
+
+            return Result
+        ");
+
+        var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, new { IndexKey = indexKey, MaxCount = maxSessions }).ConfigureAwait(false);
+
+        if (luaScriptResult.IsNull)
+        {
+            return;
+        }
+
+        var overflowExternalUniqueIds = luaScriptResult.ToDictionary();
+
+        foreach (var overflowId in overflowExternalUniqueIds)
+        {
+            var externalUniqueId = ValueConversions.GuidFromString(overflowId.Key.ToString());
+            var tenantId = overflowId.Value.ToString()!;
+
+            sessions[externalUniqueId] = tenantId;
+        }
     }
 
     protected override async Task ExpireExceedingSessionsUsingPolicies(
@@ -65,127 +136,48 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         ArgumentNullException.ThrowIfNull(policies, nameof(policies));
 
         var redisDatabase = await _connectionFactory.GetDatabaseAsync().ConfigureAwait(false);
-
-        // TODO
-
-        var luaScript = LuaScript.Prepare(@"
-
-            local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            local ExternalUniqueIds = redis.call('ZRANGE', IndexSessionTenant, @StartIndex, @EndIndex)
-
-            return ExternalUniqueIds
-
-            local IndexTokenGlobal = 'idx:token:'..SessionToken
-            redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
-
-            local IndexSessionGlobal = 'idx:sessions:updated'
-            redis.call('ZADD', IndexSessionGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
-
-            local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            redis.call('ZADD', IndexSessionTenant, @NowAsUnixMilliseconds, @ExternalUniqueId)
-
-            local IndexSessionTenantAccount = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':updated'
-            redis.call('ZADD', IndexSessionTenantAccount, @NowAsUnixMilliseconds, @ExternalUniqueId)
-
-            local IndexSessionTenantAccountDevice = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':device:'..SessionDeviceIdentificationDeviceType..':updated'
-            redis.call('ZADD', IndexSessionTenantAccountDevice, @NowAsUnixMilliseconds, @ExternalUniqueId)
-
-        ");
-
-        var luaScriptParameters = new LuaScriptParameters(tenantId, accountId, deviceIdentificationType, policies);
-
-        var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
-
-        var externalUniqueIdStrings = (RedisValue[])luaScriptResult!;
-
-        if (externalUniqueIdStrings.Length == 0)
-        {
-            return;
-        }
-
-        var externalUniqueIds = new List<Guid>();
-
-        foreach (var externalUniqueIdString in externalUniqueIdStrings ?? [])
-        {
-            if (externalUniqueIdString.IsNullOrEmpty)
-            {
-                continue;
-            }
-
-            var externalUniqueId = ValueConversions.GuidFromString(externalUniqueIdString.ToString());
-
-            externalUniqueIds.Add(externalUniqueId);
-        }
-
-        /*
-        List<SessionModel> sessions = [];
-
-        using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
+        var sessions = new Dictionary<Guid, string>();
 
         if ((policies.MaximumSessionsPerAccountSpecificDevice != null) &&
-            (policies.MaximumSessionsPerAccountSpecificDevice.TryGetValue(deviceIdentificationType, out var policy) &&
-            (policy.MaximumSessions != null) &&
-            (policy.MaximumSessions > 0)))
+            policies.MaximumSessionsPerAccountSpecificDevice.TryGetValue(deviceIdentificationType, out var devicePolicy) &&
+            (devicePolicy.MaximumSessions != null) && (devicePolicy.MaximumSessions > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
-                .Include(session => session.DeviceIdentification)
-                .Where(session => session.TenantId == tenantId && session.AccountId == accountId &&
-                    session.DeviceIdentification != null && session.DeviceIdentification.DeviceType == deviceIdentificationType)
-                .OrderBy(session => session.CreatedTimestamp)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            await ExpireSessionsInDatabase(sessions, scopeAndService, policy.MaximumSessions.Value, cancellationToken).ConfigureAwait(false);
+            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+                $"idx:tenant:{tenantId}:account:{accountId}:device:{deviceIdentificationType}:updated",
+                devicePolicy.MaximumSessions.Value, sessions).ConfigureAwait(false);
         }
-        else if ((policies.MaximumSessionsPerAccountDevice != null) &&
-                (policies.MaximumSessionsPerAccountDevice > 0))
+        else if ((policies.MaximumSessionsPerAccountDevice != null) && (policies.MaximumSessionsPerAccountDevice > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
-                .Include(session => session.DeviceIdentification)
-                .Where(session => session.TenantId == tenantId && session.AccountId == accountId &&
-                    session.DeviceIdentification != null && session.DeviceIdentification.DeviceType == deviceIdentificationType)
-                .OrderBy(session => session.CreatedTimestamp)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            await ExpireSessionsInDatabase(sessions, scopeAndService, policies.MaximumSessionsPerAccountDevice.Value, cancellationToken).ConfigureAwait(false);
+            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+                $"idx:tenant:{tenantId}:account:{accountId}:device:{deviceIdentificationType}:updated",
+                policies.MaximumSessionsPerAccountDevice.Value, sessions).ConfigureAwait(false);
         }
 
-        if ((policies.MaximumSessionsPerAccount != null) &&
-            (policies.MaximumSessionsPerAccount > 0))
+        if ((policies.MaximumSessionsPerAccount != null) && (policies.MaximumSessionsPerAccount > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
-                .Where(session => session.TenantId == tenantId && session.AccountId == accountId)
-                .OrderBy(session => session.CreatedTimestamp)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            await ExpireSessionsInDatabase(sessions, scopeAndService, policies.MaximumSessionsPerAccount.Value, cancellationToken).ConfigureAwait(false);
+            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+                $"idx:tenant:{tenantId}:account:{accountId}:updated",
+                policies.MaximumSessionsPerAccount.Value, sessions).ConfigureAwait(false);
         }
 
-        if ((policies.MaximumSessionsPerTenant != null) &&
-            (policies.MaximumSessionsPerTenant > 0))
+        if ((policies.MaximumSessionsPerTenant != null) && (policies.MaximumSessionsPerTenant > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
-                .Where(session => session.TenantId == tenantId)
-                .OrderBy(session => session.CreatedTimestamp)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            await ExpireSessionsInDatabase(sessions, scopeAndService, policies.MaximumSessionsPerTenant.Value, cancellationToken).ConfigureAwait(false);
+            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+                $"idx:tenant:{tenantId}:updated",
+                policies.MaximumSessionsPerTenant.Value, sessions).ConfigureAwait(false);
         }
 
-        if ((policies.MaximumSessions != null) &&
-            (policies.MaximumSessions > 0))
+        if ((policies.MaximumSessions != null) && (policies.MaximumSessions > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
-                .OrderBy(session => session.CreatedTimestamp)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            await ExpireSessionsInDatabase(sessions, scopeAndService, policies.MaximumSessions.Value, cancellationToken).ConfigureAwait(false);
+            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+                "idx:sessions:updated",
+                policies.MaximumSessions.Value, sessions).ConfigureAwait(false);
         }
-        */
+
+        foreach (var session in sessions)
+        {
+            await ExpireSessionByExternalUniqueIdsAsync(session.Value, [session.Key], cancellationToken).ConfigureAwait(false);
+        }
     }
 
     protected override async Task<IReadOnlyCollection<ISession>> GetSessionsByTokenAsync(
@@ -224,7 +216,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
                 for i = 1, #Tenants do
                     local TenantValue = Tenants[i]
-        
+
                     table.insert(MultipleResponse, 'TENANT_' .. i)
                     table.insert(MultipleResponse, tostring(TenantValue))
                 end
@@ -256,7 +248,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 return { 'CALL_STATUS', 'NOK_EXPIRED' }
             end
 
-            local SessionData = redis.call('HMGET', SessionKey)
+            local SessionData = redis.call('HGETALL', SessionKey)
             local FinalResponse = { 'CALL_STATUS', 'OK', 'COUNT', '1' }
 
             for i = 1, #SessionData do
@@ -269,14 +261,12 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         var luaScriptParameters = new LuaScriptParameters(tenantId, token);
         var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
 
-        var results = (RedisValue[])luaScriptResult!;
-        var resultStatus = results[0].ToString();
+        var sessionFields = ExtractCallStatusCountAndFields(luaScriptResult, out var callStatus, out var count);
 
-        if (resultStatus != "OK")
+        if (callStatus != "OK")
         {
-            if ((resultStatus == "NOK_INVALID_TOKEN") ||
-                (resultStatus == "NOK_INVALID") ||
-                (resultStatus == "NOK_EXPIRED"))
+            if ((callStatus == "NOK_INVALID") ||
+                (callStatus == "NOK_EXPIRED"))
             {
                 return [];
             }
@@ -284,26 +274,28 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             throw new InvalidOperationException($"Unexpected error");
         }
 
-        var resultCount = int.Parse(results[1].ToString(), CultureInfo.InvariantCulture);
-
-        if (resultCount == 1)
+        if (count == "1")
         {
-            var session = Map(results);
+            var session = Map(sessionFields);
 
             return [session];
         }
 
-        var tenantIds = results.Skip(2);
         var sessions = new List<ISession>();
 
-        foreach (var tenantIdString in tenantIds ?? [])
+        foreach (var sessionField in sessionFields)
         {
-            if (tenantIdString.IsNullOrEmpty)
+            if (string.IsNullOrWhiteSpace(sessionField.Key))
             {
                 continue;
             }
 
-            tenantId = tenantIdString.ToString();
+            tenantId = sessionField.Value.ToString();
+
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                continue;
+            }
 
             var tenantResults = await GetSessionsByTokenAsync(tenantId, token, cancellationToken).ConfigureAwait(false);
             var session = tenantResults.FirstOrDefault();
@@ -445,6 +437,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 'TenantId', @TenantId,
                 'ExternalUniqueId', @ExternalUniqueId,
                 'Token', @Token,
+                'RefreshToken', @RefreshToken,
                 'CreatedTimestamp', @Now,
                 'UpdatedTimestamp', @Now
             }
@@ -487,6 +480,9 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             redis.call('HSET', SessionKey, unpack(hsetArgs))
 
             redis.call('SET', TokenKey, @ExternalUniqueId)
+
+            redis.call('HSET', 'idx:sessions:tenants',
+                @ExternalUniqueId, @TenantId)
 
             local IndexTokenGlobal = 'idx:token:'..@Token
             redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
@@ -572,6 +568,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
             redis.call('HSET', SessionKey,
                 'Token', @Token,
+                'RefreshToken', @RefreshToken,
                 'UpdatedTimestamp', @Now)
 
             local IndexSessionTokenGlobal = 'idx:token:'..SessionToken
@@ -638,7 +635,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             local SessionFinalizedTimestamp = SessionExists[2]
             local SessionAccountId = SessionExists[3]
             local SessionDeviceIdentificationDeviceType = SessionExists[4]
-            
+
             if (not SessionCreatedTimestamp or SessionCreatedTimestamp == false) then
                 redis.call('DEL', SessionTokenKey)
 
@@ -656,6 +653,8 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 'FinalizedTimestamp', @Now)
 
             redis.call('EXPIRE', SessionKey, 86400)
+
+            redis.call('HDEL', 'idx:sessions:tenants', @ExternalUniqueId)
 
             local IndexSessionTokenGlobal = 'idx:token:'..@Token
             redis.call('ZREM', IndexSessionTokenGlobal, @ExternalUniqueId)
@@ -733,6 +732,8 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
             redis.call('EXPIRE', SessionKey, 86400)
 
+            redis.call('HDEL', 'idx:sessions:tenants', @ExternalUniqueId)
+
             local IndexSessionTokenGlobal = 'idx:token:'..SessionToken
             redis.call('ZREM', IndexSessionTokenGlobal, @ExternalUniqueId)
 
@@ -786,7 +787,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
-            
+
             if (not SessionCreatedTimestamp or SessionCreatedTimestamp == false) then
                 return { 'CALL_STATUS', 'NOK_INVALID' }
             end
@@ -808,13 +809,12 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         var luaScriptParameters = new LuaScriptParameters(tenantId, externalUniqueId);
         var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
 
-        var results = (RedisValue[])luaScriptResult!;
-        var resultStatus = results[0].ToString();
+        var sessionFields = ExtractCallStatusCountAndFields(luaScriptResult, out var callStatus, out var count);
 
-        if (resultStatus != "OK")
+        if (callStatus != "OK")
         {
-            if ((resultStatus == "NOK_INVALID") ||
-                (resultStatus == "NOK_EXPIRED"))
+            if ((callStatus == "NOK_INVALID") ||
+                (callStatus == "NOK_EXPIRED"))
             {
                 return null;
             }
@@ -822,9 +822,29 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             throw new InvalidOperationException($"Unexpected error");
         }
 
-        var session = Map(results);
+        if (count != "1")
+        {
+            throw new InvalidOperationException($"Unexpected error");
+        }
+
+        var session = Map(sessionFields);
 
         return session;
+    }
+
+    private static Dictionary<string, RedisResult> ExtractCallStatusCountAndFields(RedisResult? luaScriptResult, out string callStatus, out string count)
+    {
+        ArgumentNullException.ThrowIfNull(luaScriptResult, nameof(luaScriptResult));
+
+        var dictionary = luaScriptResult.ToDictionary();
+
+        callStatus = dictionary.TryGetValue("CALL_STATUS", out var redisValueCallStatus) ? redisValueCallStatus.ToString() : string.Empty;
+        count = dictionary.TryGetValue("COUNT", out var redisValueCount) ? redisValueCount.ToString() : string.Empty;
+
+        _ = dictionary.Remove("CALL_STATUS");
+        _ = dictionary.Remove("COUNT");
+
+        return dictionary;
     }
 
     public override async Task<IReadOnlyCollection<ISession>> GetSessionsAsync(

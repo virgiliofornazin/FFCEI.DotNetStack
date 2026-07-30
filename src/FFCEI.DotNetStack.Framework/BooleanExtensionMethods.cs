@@ -5,7 +5,7 @@ namespace FFCEI.DotNetStack.Framework;
 public static class BooleanExtensionMethods
 {
     public static int ToZeroOrOne(this bool value)
-        => value ? 0 : 1;
+        => value ? 1 : 0;
 
     public static bool FromZeroOrOne<TNumber>(this ref bool value, TNumber numberValue, bool strict = false) where TNumber : INumber<TNumber>
     {
@@ -16,7 +16,7 @@ public static class BooleanExtensionMethods
     }
 
     public static char ToZeroOrOneChar(this bool value)
-        => value ? '0' : '1';
+        => value ? '1' : '0';
 
     public static bool FromZeroOrOne<TNumber>(this ref bool value, char charValue, bool strict = false)
     {

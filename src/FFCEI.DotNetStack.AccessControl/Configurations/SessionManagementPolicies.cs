@@ -8,9 +8,9 @@ public sealed class SessionManagementPolicies
     public static readonly SessionManagementPolicies NoPolicy = new();
 
     public bool RequiredExpiration { get; set; }
-    public uint? MaximumSessionsPerTenant { get; set; }
-    public uint? MaximumSessionsPerAccount { get; set; }
-    public uint? MaximumSessionsPerAccountDevice { get; set; }
+    public long? MaximumSessionsPerTenant { get; set; }
+    public long? MaximumSessionsPerAccount { get; set; }
+    public long? MaximumSessionsPerAccountDevice { get; set; }
     public Dictionary<DeviceIdentificationType, ISessionManagementPolicy>? MaximumSessionsPerAccountSpecificDevice { get; internal set; } = [];
     IReadOnlyDictionary<DeviceIdentificationType, ISessionManagementPolicy>? ISessionManagementPolicies.MaximumSessionsPerAccountSpecificDevice => MaximumSessionsPerAccountSpecificDevice;
 }

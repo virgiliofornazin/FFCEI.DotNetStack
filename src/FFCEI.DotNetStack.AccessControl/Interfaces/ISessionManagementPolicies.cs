@@ -4,8 +4,8 @@ public interface ISessionManagementPolicies
     : ISessionManagementPolicy
 {
     bool RequiredExpiration { get; }
-    uint? MaximumSessionsPerTenant { get; }
-    uint? MaximumSessionsPerAccount { get; }
-    uint? MaximumSessionsPerAccountDevice { get; set; }
+    long? MaximumSessionsPerTenant { get; }
+    long? MaximumSessionsPerAccount { get; }
+    long? MaximumSessionsPerAccountDevice { get; set; }
     IReadOnlyDictionary<DeviceIdentificationType, ISessionManagementPolicy>? MaximumSessionsPerAccountSpecificDevice { get; }
 }

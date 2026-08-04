@@ -42,8 +42,6 @@ public static class IServiceCollectionExtensionMethods
 
         logger ??= NullLogger.Instance;
 
-        options.UseDistributedCache = false;
-
         options.LocalMemoryCacheEntryLifetime ??= TimeSpan.FromSeconds(30);
 
         if (options.LocalMemoryCacheEntryLifetime <= TimeSpan.Zero)

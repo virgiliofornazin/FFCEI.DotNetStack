@@ -4,25 +4,11 @@ namespace FFCEI.DotNetStack.WebApi;
 
 public static class HttpContextExtensionMethods
 {
-    private const string RealRemoteIpAddressItem = "RealRemoteIpAddress";
-
     public static string? RealRemoteIpAddress(this HttpContext httpContext)
     {
         ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
 
-        if (httpContext.Items.TryGetValue(RealRemoteIpAddressItem, out var cachedRealRemoteIpAddress))
-        {
-            return cachedRealRemoteIpAddress?.ToString();
-        }
-
-        var realRemoteIpAddress = httpContext.Request.RealRemoteIpAddress();
-
-        if (!string.IsNullOrWhiteSpace(realRemoteIpAddress))
-        {
-            httpContext.Items[RealRemoteIpAddressItem] = realRemoteIpAddress;
-        }
-
-        return realRemoteIpAddress;
+        return httpContext.Request.RealRemoteIpAddress();
     }
 
     public static bool HasAuthorizationHeader(this HttpContext httpContext)

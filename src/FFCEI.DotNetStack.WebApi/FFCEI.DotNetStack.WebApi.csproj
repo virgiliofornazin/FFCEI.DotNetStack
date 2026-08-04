@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.11" />
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.3.11" />
     <PackageReference Include="Microsoft.Net.Http.Headers" Version="10.0.10" />
   </ItemGroup>
 

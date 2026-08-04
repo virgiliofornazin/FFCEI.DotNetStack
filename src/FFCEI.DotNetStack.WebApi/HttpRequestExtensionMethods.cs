@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using System.Text;
 
@@ -25,7 +29,11 @@ public static class HttpRequestExtensionMethods
             }
         }
 
-        if (httpRequest.Headers.TryGetValue(ReverseProxyXForwardedForHeader, out var reverseProxyXForwardedForHeaderValue))
+        var forwardedOptions = httpRequest.HttpContext?.RequestServices?.GetService<IOptions<ForwardedHeadersOptions>>()?.Value;
+        var forwardedOptionsConfigured = (forwardedOptions != null) && forwardedOptions.ForwardedHeaders.HasFlag(ForwardedHeaders.XForwardedFor);
+
+        if (!forwardedOptionsConfigured &&
+            httpRequest.Headers.TryGetValue(ReverseProxyXForwardedForHeader, out var reverseProxyXForwardedForHeaderValue))
         {
             var realRequestAddress = reverseProxyXForwardedForHeaderValue.ToString().Split(RealRemoteIpAddressSplitChar).FirstOrDefault();
 

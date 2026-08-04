@@ -197,7 +197,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             local TenantIdLocal = @TenantId
             local Tenants = {}
 
-            if (not TenantIdLocal or TenantIdLocal == false)
+            if (not TenantIdLocal or TenantIdLocal == false) then
                 local IndexTokenGlobal = 'idx:token:'..@Token
 
                 Tenants = redis.call('ZRANGE', IndexTokenGlobal, 0, -1, 'REV')
@@ -556,23 +556,28 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             end
 
             local TokenKey = 'token:'..@TenantId..':'..@Token
-            local TokenKeyExists = redis.call('EXISTS', TokenKey)
 
-            if TokenKeyExists > 0 then
-                return 'NOK_DUPLICATED_TOKEN'
+            if @Token ~= SessionToken then
+                local TokenKeyExists = redis.call('EXISTS', TokenKey)
+
+                if TokenKeyExists > 0 then
+                    return 'NOK_DUPLICATED_TOKEN'
+                end
+
+                local SessionTokenKey = 'token:'..@TenantId..':'..SessionToken
+
+                redis.call('DEL', SessionTokenKey)
+
+                local IndexSessionTokenGlobal = 'idx:token:'..SessionToken
+                redis.call('ZREM', IndexSessionTokenGlobal, @ExternalUniqueId)
             end
 
-            local SessionTokenKey = 'token:'..@TenantId..':'..SessionToken
-
-            redis.call('DEL', SessionTokenKey)
+            redis.call('SET', TokenKey, @ExternalUniqueId)
 
             redis.call('HSET', SessionKey,
                 'Token', @Token,
                 'RefreshToken', @RefreshToken,
                 'UpdatedTimestamp', @Now)
-
-            local IndexSessionTokenGlobal = 'idx:token:'..SessionToken
-            redis.call('ZREM', IndexSessionTokenGlobal, @ExternalUniqueId)
 
             local IndexTokenGlobal = 'idx:token:'..@Token
             redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
@@ -653,6 +658,8 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 'FinalizedTimestamp', @Now)
 
             redis.call('EXPIRE', SessionKey, 86400)
+
+            redis.call('DEL', SessionTokenKey)
 
             redis.call('HDEL', 'idx:sessions:tenants', @ExternalUniqueId)
 

@@ -17,19 +17,22 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
     private const string AttributeFieldPrefix = "Attributes:";
 
-    private static string GetRequiredField(Dictionary<string, RedisResult> sessionFields, string fieldName)
+    private static string GetRequiredStringField(Dictionary<string, RedisResult> sessionFields, string fieldName)
         => sessionFields.TryGetValue(fieldName, out var value) ? value.ToString() : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
 
-    private static long GetRequiredInt64Field(Dictionary<string, RedisResult> sessionFields, string fieldName)
+    private static long GetRequiredIntField(Dictionary<string, RedisResult> sessionFields, string fieldName)
+        => sessionFields.TryGetValue(fieldName, out var value) ? (int)value : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
+
+    private static long GetRequiredLongField(Dictionary<string, RedisResult> sessionFields, string fieldName)
         => sessionFields.TryGetValue(fieldName, out var value) ? (long)value : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
 
-    private static string? GetOptionalField(Dictionary<string, RedisResult> sessionFields, string fieldName)
+    private static string? GetOptionalStringField(Dictionary<string, RedisResult> sessionFields, string fieldName)
         => sessionFields.TryGetValue(fieldName, out var value) ? value.ToString() : null;
 
-    private static int? GetOptionalInt32Field(Dictionary<string, RedisResult> sessionFields, string fieldName)
+    private static int? GetOptionalIntField(Dictionary<string, RedisResult> sessionFields, string fieldName)
         => sessionFields.TryGetValue(fieldName, out var value) ? (int?)value : null;
 
-    private static long? GetOptionalInt64Field(Dictionary<string, RedisResult> sessionFields, string fieldName)
+    private static long? GetOptionalLongField(Dictionary<string, RedisResult> sessionFields, string fieldName)
         => sessionFields.TryGetValue(fieldName, out var value) ? (long?)value : null;
 
     private static Dictionary<string, string> ExtractAttributes(Dictionary<string, RedisResult> sessionFields)
@@ -49,31 +52,31 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
     private static Session Map(Dictionary<string, RedisResult> sessionFields)
     {
-        var deviceType = Enum.TryParse<DeviceIdentificationType>(GetOptionalField(sessionFields, "DeviceIdentification:DeviceType"), out var parsedDeviceType)
+        var deviceType = Enum.TryParse<DeviceIdentificationType>(GetOptionalStringField(sessionFields, "DeviceIdentification:DeviceType"), out var parsedDeviceType)
             ? parsedDeviceType
             : DeviceIdentificationType.Unknown;
 
         var result = new Session()
         {
-            TenantId = GetRequiredField(sessionFields, "TenantId"),
-            AccountId = GetOptionalField(sessionFields, "AccountId") ?? string.Empty,
-            ExternalUniqueId = ValueConversions.GuidFromString(GetRequiredField(sessionFields, "ExternalUniqueId")),
-            Token = GetRequiredField(sessionFields, "Token"),
-            RefreshToken = GetRequiredField(sessionFields, "RefreshToken"),
+            TenantId = GetRequiredStringField(sessionFields, "TenantId"),
+            AccountId = GetOptionalStringField(sessionFields, "AccountId") ?? string.Empty,
+            ExternalUniqueId = ValueConversions.GuidFromString(GetRequiredStringField(sessionFields, "ExternalUniqueId")),
+            Token = GetRequiredStringField(sessionFields, "Token"),
+            RefreshToken = GetRequiredStringField(sessionFields, "RefreshToken"),
             DeviceIdentification = new DeviceIdentification()
             {
-                UserAgent = GetOptionalField(sessionFields, "DeviceIdentification:UserAgent"),
-                Application = GetOptionalField(sessionFields, "DeviceIdentification:Application"),
-                OperatingSystem = GetOptionalField(sessionFields, "DeviceIdentification:OperatingSystem"),
-                MultiTouchPoints = GetOptionalInt32Field(sessionFields, "DeviceIdentification:MultiTouchPoints"),
+                UserAgent = GetOptionalStringField(sessionFields, "DeviceIdentification:UserAgent"),
+                Application = GetOptionalStringField(sessionFields, "DeviceIdentification:Application"),
+                OperatingSystem = GetOptionalStringField(sessionFields, "DeviceIdentification:OperatingSystem"),
+                MultiTouchPoints = GetOptionalIntField(sessionFields, "DeviceIdentification:MultiTouchPoints"),
                 DeviceType = deviceType,
-                Mobile = GetOptionalInt32Field(sessionFields, "DeviceIdentification:Mobile") is int mobileValue && (mobileValue != 0)
+                Mobile = GetOptionalIntField(sessionFields, "DeviceIdentification:Mobile") is int mobileValue && (mobileValue != 0)
             },
-            ExpiresTimestamp = ValueConversions.TryDateTimeOffsetUtcFromUnixMilliseconds(GetOptionalInt64Field(sessionFields, "ExpiresTimestamp")),
-            InactivityExpirationInterval = ValueConversions.TryTimeSpanFromMilliseconds(GetOptionalInt64Field(sessionFields, "InactivityExpirationInterval")),
-            FinalizedTimestamp = ValueConversions.TryDateTimeOffsetUtcFromUnixMilliseconds(GetOptionalInt64Field(sessionFields, "FinalizedTimestamp")),
-            CreatedTimestamp = ValueConversions.DateTimeOffsetUtcFromSerialWithMilliseconds(GetRequiredInt64Field(sessionFields, "CreatedTimestamp")),
-            UpdatedTimestamp = ValueConversions.DateTimeOffsetUtcFromSerialWithMilliseconds(GetRequiredInt64Field(sessionFields, "UpdatedTimestamp")),
+            ExpiresTimestamp = ValueConversions.TryDateTimeOffsetUtcFromUnixMilliseconds(GetOptionalLongField(sessionFields, "ExpiresTimestamp")),
+            InactivityExpirationInterval = ValueConversions.TryTimeSpanFromMilliseconds(GetOptionalLongField(sessionFields, "InactivityExpirationInterval")),
+            FinalizedTimestamp = ValueConversions.TryDateTimeOffsetUtcFromUnixMilliseconds(GetOptionalLongField(sessionFields, "FinalizedTimestamp")),
+            CreatedTimestamp = ValueConversions.DateTimeOffsetUtcFromSerialWithMilliseconds(GetRequiredLongField(sessionFields, "CreatedTimestamp")),
+            UpdatedTimestamp = ValueConversions.DateTimeOffsetUtcFromSerialWithMilliseconds(GetRequiredLongField(sessionFields, "UpdatedTimestamp")),
             Attributes = ExtractAttributes(sessionFields)
         };
 

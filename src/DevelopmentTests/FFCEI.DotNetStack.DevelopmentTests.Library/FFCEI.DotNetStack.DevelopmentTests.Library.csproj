@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\FFCEI.DotNetStack.EntityFramework\FFCEI.DotNetStack.EntityFramework.csproj" />
     <ProjectReference Include="..\..\FFCEI.DotNetStack.MessageBroker\FFCEI.DotNetStack.MessageBroker.csproj" />
     <ProjectReference Include="..\..\FFCEI.DotNetStack.Serialization\FFCEI.DotNetStack.Serialization.csproj" />
+    <ProjectReference Include="..\..\FFCEI.DotNetStack.WebApi\FFCEI.DotNetStack.WebApi.csproj" />
   </ItemGroup>
 
 </Project>

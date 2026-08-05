@@ -1,17 +1,24 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Net;
 
 namespace FFCEI.DotNetStack.WebApi;
 
-public static class IServiceCollectionExtensionMethods
+public static class IHostBuilderExtensionMethods
 {
-    public static IServiceCollection AddForwardHeader(this IServiceCollection services,
+    public static IHostBuilder AddForwardedHeaders(this IHostBuilder hostBuilder,
         IEnumerable<IPAddress>? knownProxies = null,
-        IEnumerable<Microsoft.AspNetCore.HttpOverrides.IPNetwork>? knownNetworks = null,
+        IEnumerable<System.Net.IPNetwork>? knownNetworks = null,
         Action<ForwardedHeadersOptions>? builder = null)
-        => services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        ArgumentNullException.ThrowIfNull(hostBuilder, nameof(hostBuilder));
+
+        _ = hostBuilder.ConfigureServices((hostContext, services) =>
+        {
+            _ = services.Configure<ForwardedHeadersOptions>(options =>
              {
                  options.ForwardedHeaders = ForwardedHeaders.All;
 
@@ -31,19 +38,31 @@ public static class IServiceCollectionExtensionMethods
                  {
                      foreach (var knownNetwork in knownNetworks)
                      {
-                         options.KnownNetworks.Add(knownNetwork);
+                         options.KnownIPNetworks.Add(knownNetwork);
                      }
                  }
                  else
                  {
-                     options.KnownNetworks.Clear();
+                     options.KnownIPNetworks.Clear();
                  }
 
                  builder?.Invoke(options);
 
-                 if (options.KnownProxies.Count == 0 && options.KnownNetworks.Count == 0)
+                 if (options.KnownProxies.Count == 0 && options.KnownIPNetworks.Count == 0)
                  {
                      options.ForwardLimit = null;
                  }
              });
+        });
+
+        _ = hostBuilder.ConfigureWebHost(webBuilder =>
+        {
+            _ = webBuilder.Configure((hostContext, app) =>
+            {
+                _ = app.UseForwardedHeaders();
+            });
+        });
+
+        return hostBuilder;
+    }
 }

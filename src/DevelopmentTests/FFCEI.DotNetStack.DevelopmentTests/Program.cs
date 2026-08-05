@@ -3,7 +3,6 @@
 
 using FFCEI.DotNetStack.Compliance;
 using FFCEI.DotNetStack.Configuration;
-using FFCEI.DotNetStack.Secrets;
 using FFCEI.DotNetStack.DevelopmentTests.Library.EntityFramework;
 using FFCEI.DotNetStack.DevelopmentTests.Library.MessageBroker;
 using FFCEI.DotNetStack.DevelopmentTests.Library.MessageHandlers;
@@ -18,7 +17,9 @@ using FFCEI.DotNetStack.Logging.Configurations;
 using FFCEI.DotNetStack.MessageBroker;
 using FFCEI.DotNetStack.MessageBroker.Interfaces;
 using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.Secrets;
 using FFCEI.DotNetStack.Serialization;
+using FFCEI.DotNetStack.WebApi;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -132,6 +133,8 @@ internal sealed class Program
 
             _ = services.ReplicateStandardLoggerFilters();
         });
+
+        _ = builder.AddForwardedHeaders();
 
         var app = builder.Build();
 

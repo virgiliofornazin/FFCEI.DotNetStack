@@ -12,14 +12,16 @@ public static class HttpRequestExtensionMethods
 {
     private const char RealRemoteIpAddressSplitChar = ',';
     private const char BasicUserPasswordSplitChar = ':';
-    private const string CloudfareConnectingIpHeader = "CF-Connecting-IP";
-    private const string ReverseProxyXForwardedForHeader = "X-Forwarded-For";
+    private const string CloudfareConnectingIpHeaderName = "CF-Connecting-IP";
+    private const string ReverseProxyXForwardedForHeaderName = "X-Forwarded-For";
+    private const string ApiKeyHeaderName = "X-API-Key";
+    private const string ClientSecretHeaderName = "X-Client-Secret";
 
     public static string? RealRemoteIpAddress(this HttpRequest httpRequest)
     {
         ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
 
-        if (httpRequest.Headers.TryGetValue(CloudfareConnectingIpHeader, out var cloudfareConnectingIpHeaderValue))
+        if (httpRequest.Headers.TryGetValue(CloudfareConnectingIpHeaderName, out var cloudfareConnectingIpHeaderValue))
         {
             var realRequestAddress = cloudfareConnectingIpHeaderValue.ToString().Split(RealRemoteIpAddressSplitChar).FirstOrDefault();
 
@@ -33,7 +35,7 @@ public static class HttpRequestExtensionMethods
         var forwardedOptionsConfigured = (forwardedOptions != null) && forwardedOptions.ForwardedHeaders.HasFlag(ForwardedHeaders.XForwardedFor);
 
         if (!forwardedOptionsConfigured &&
-            httpRequest.Headers.TryGetValue(ReverseProxyXForwardedForHeader, out var reverseProxyXForwardedForHeaderValue))
+            httpRequest.Headers.TryGetValue(ReverseProxyXForwardedForHeaderName, out var reverseProxyXForwardedForHeaderValue))
         {
             var realRequestAddress = reverseProxyXForwardedForHeaderValue.ToString().Split(RealRemoteIpAddressSplitChar).FirstOrDefault();
 
@@ -55,6 +57,17 @@ public static class HttpRequestExtensionMethods
             }
         }
 
+        if (forwardedOptionsConfigured &&
+            httpRequest.Headers.TryGetValue(ReverseProxyXForwardedForHeaderName, out var reverseProxyXForwardedForHeaderValueFallback))
+        {
+            var realRequestAddress = reverseProxyXForwardedForHeaderValueFallback.ToString().Split(RealRemoteIpAddressSplitChar).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(realRequestAddress))
+            {
+                return realRequestAddress;
+            }
+        }
+
         return null;
     }
 
@@ -62,10 +75,10 @@ public static class HttpRequestExtensionMethods
     {
         ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
 
-        return httpRequest.Headers.ContainsKey(HeaderNames.Authorization);
+        return !string.IsNullOrWhiteSpace(httpRequest.AuthorizationHeader());
     }
 
-    public static string? BearerToken(this HttpRequest httpRequest)
+    public static string? AuthorizationHeader(this HttpRequest httpRequest)
     {
         ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
 
@@ -76,12 +89,22 @@ public static class HttpRequestExtensionMethods
 
         var authorizationHeader = authorizationHeaderValue.ToString();
 
-        if (string.IsNullOrWhiteSpace(authorizationHeader))
+        if (string.IsNullOrWhiteSpace(authorizationHeader) || (authorizationHeader.ToUpperInvariant().Trim() == "NULL"))
         {
             return null;
         }
 
-        if (authorizationHeader.Length < 8)
+        return authorizationHeader;
+    }
+
+    public static string? BearerToken(this HttpRequest httpRequest)
+    {
+        ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
+
+        var authorizationHeader = httpRequest.AuthorizationHeader();
+
+        if (string.IsNullOrWhiteSpace(authorizationHeader) ||
+            authorizationHeader.Length < 8)
         {
             return null;
         }
@@ -100,21 +123,10 @@ public static class HttpRequestExtensionMethods
 
     public static (string User, string Password)? BasicAuthentication(this HttpRequest httpRequest)
     {
-        ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
+        var authorizationHeader = httpRequest.AuthorizationHeader();
 
-        if (!httpRequest.Headers.TryGetValue(HeaderNames.Authorization, out var authorizationHeaderValue))
-        {
-            return null;
-        }
-
-        var authorizationHeader = authorizationHeaderValue.ToString();
-
-        if (string.IsNullOrWhiteSpace(authorizationHeader))
-        {
-            return null;
-        }
-
-        if (authorizationHeader.Length < 7)
+        if (string.IsNullOrWhiteSpace(authorizationHeader) ||
+            authorizationHeader.Length < 7)
         {
             return null;
         }
@@ -143,5 +155,73 @@ public static class HttpRequestExtensionMethods
         var password = userPassword.Length > 1 ? userPassword[1] : string.Empty;
 
         return (user, password);
+    }
+
+    public static bool HasApiKeyHeader(this HttpRequest httpRequest)
+    {
+        ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
+
+        return !string.IsNullOrWhiteSpace(httpRequest.ApiKeyHeader());
+    }
+
+    public static string? ApiKeyHeader(this HttpRequest httpRequest, string? apiKeyHeaderName = null)
+    {
+        ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
+
+        if (string.IsNullOrWhiteSpace(apiKeyHeaderName))
+        {
+            apiKeyHeaderName = ApiKeyHeaderName;
+        }
+
+        if (!httpRequest.Headers.TryGetValue(apiKeyHeaderName, out var apiKeyHeaderValue))
+        {
+            return null;
+        }
+
+        var apiKeyHeader = apiKeyHeaderValue.ToString();
+
+        if (string.IsNullOrWhiteSpace(apiKeyHeader) || (apiKeyHeader.ToUpperInvariant().Trim() == "NULL"))
+        {
+            return null;
+        }
+
+        return apiKeyHeader;
+    }
+
+    public static string? ClientSecretHeader(this HttpRequest httpRequest, string? clientSecretHeaderName = null)
+    {
+        ArgumentNullException.ThrowIfNull(httpRequest, nameof(httpRequest));
+
+        if (string.IsNullOrWhiteSpace(clientSecretHeaderName))
+        {
+            clientSecretHeaderName = ClientSecretHeaderName;
+        }
+
+        if (!httpRequest.Headers.TryGetValue(clientSecretHeaderName, out var clientSecretHeaderValue))
+        {
+            return null;
+        }
+
+        var clientSecretHeader = clientSecretHeaderValue.ToString();
+
+        if (string.IsNullOrWhiteSpace(clientSecretHeader) || (clientSecretHeader.ToUpperInvariant().Trim() == "NULL"))
+        {
+            return null;
+        }
+
+        return clientSecretHeader;
+    }
+
+    public static (string ApiKey, string? ClientSecret)? ApiKeyAuthentication(this HttpRequest httpRequest, string? apiKeyHeaderName = null, string? clientSecretHeaderName = null)
+    {
+        var apiKeyHeader = httpRequest.ApiKeyHeader(apiKeyHeaderName);
+        var clientSecretHeader = httpRequest.ClientSecretHeader(clientSecretHeaderName);
+
+        if (string.IsNullOrWhiteSpace(apiKeyHeader))
+        {
+            return null;
+        }
+
+        return (apiKeyHeader, clientSecretHeader);
     }
 }

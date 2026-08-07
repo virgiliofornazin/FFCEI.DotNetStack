@@ -18,6 +18,13 @@ public static class HttpContextExtensionMethods
         return httpContext.Request.HasAuthorizationHeader();
     }
 
+    public static string? AuthorizationHeader(this HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
+
+        return httpContext.Request.AuthorizationHeader();
+    }
+
     public static string? BearerToken(this HttpContext httpContext)
     {
         ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
@@ -30,5 +37,33 @@ public static class HttpContextExtensionMethods
         ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
 
         return httpContext.Request.BasicAuthentication();
+    }
+
+    public static bool HasApiKeyHeader(this HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
+
+        return httpContext.Request.HasApiKeyHeader();
+    }
+
+    public static string? ApiKeyHeader(this HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
+
+        return httpContext.Request.ApiKeyHeader();
+    }
+
+    public static string? ClientSecretHeader(this HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
+
+        return httpContext.Request.ClientSecretHeader();
+    }
+
+    public static (string ApiKey, string? ClientSecret)? ApiKeyAuthentication(this HttpContext httpContext, string? apiKeyHeaderName = null, string? clientSecretHeaderName = null)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
+
+        return httpContext.Request.ApiKeyAuthentication(apiKeyHeaderName, clientSecretHeaderName);
     }
 }

@@ -20,9 +20,6 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
     private static string GetRequiredStringField(Dictionary<string, RedisResult> sessionFields, string fieldName)
         => sessionFields.TryGetValue(fieldName, out var value) ? value.ToString() : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
 
-    private static long GetRequiredIntField(Dictionary<string, RedisResult> sessionFields, string fieldName)
-        => sessionFields.TryGetValue(fieldName, out var value) ? (int)value : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
-
     private static long GetRequiredLongField(Dictionary<string, RedisResult> sessionFields, string fieldName)
         => sessionFields.TryGetValue(fieldName, out var value) ? (long)value : throw new InvalidOperationException($"Missing required session field '{fieldName}'");
 
@@ -53,8 +50,9 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
     private static Session Map(Dictionary<string, RedisResult> sessionFields)
     {
         var deviceType = Enum.TryParse<DeviceIdentificationType>(GetOptionalStringField(sessionFields, "DeviceIdentification:DeviceType"), out var parsedDeviceType)
-            ? parsedDeviceType
-            : DeviceIdentificationType.Unknown;
+            ? parsedDeviceType : DeviceIdentificationType.Unknown;
+
+        var mobile = GetOptionalIntField(sessionFields, "DeviceIdentification:Mobile") is int mobileValue && (mobileValue != 0);
 
         var result = new Session()
         {
@@ -70,7 +68,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 OperatingSystem = GetOptionalStringField(sessionFields, "DeviceIdentification:OperatingSystem"),
                 MultiTouchPoints = GetOptionalIntField(sessionFields, "DeviceIdentification:MultiTouchPoints"),
                 DeviceType = deviceType,
-                Mobile = GetOptionalIntField(sessionFields, "DeviceIdentification:Mobile") is int mobileValue && (mobileValue != 0)
+                Mobile = mobile
             },
             ExpiresTimestamp = ValueConversions.TryDateTimeOffsetUtcFromUnixMilliseconds(GetOptionalLongField(sessionFields, "ExpiresTimestamp")),
             InactivityExpirationInterval = ValueConversions.TryTimeSpanFromMilliseconds(GetOptionalLongField(sessionFields, "InactivityExpirationInterval")),

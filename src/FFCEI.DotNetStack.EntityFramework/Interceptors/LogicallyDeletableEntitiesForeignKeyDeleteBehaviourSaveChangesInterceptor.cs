@@ -185,10 +185,10 @@ public sealed class LogicallyDeletableEntitiesForeignKeyDeleteBehaviourSaveChang
                             var property = navigationForeignKeyReference.ForeignKeyReference.EntityProperty;
                             property?.SetValue(detail, null);
 
-                            property = navigationForeignKeyReference.ForeignKeyReference.UniqueIdProperty;
+                            property = navigationForeignKeyReference.ForeignKeyReference.DatabaseIdProperty;
                             property?.SetValue(detail, property.PropertyType.IsNullable() ? null : default(long));
 
-                            property = navigationForeignKeyReference.ForeignKeyReference.ExternalUniqueIdProperty;
+                            property = navigationForeignKeyReference.ForeignKeyReference.UniversalUniqueIdProperty;
                             property?.SetValue(detail, property.PropertyType.IsNullable() ? null : default(Guid));
 
                             if (detailEntry.State == EntityState.Unchanged)

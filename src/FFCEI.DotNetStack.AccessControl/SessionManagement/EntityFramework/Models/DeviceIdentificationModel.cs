@@ -4,7 +4,7 @@ using FFCEI.DotNetStack.Models;
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.EntityFramework.Models;
 
 public class DeviceIdentificationModel
-    : UniqueIdEntityModel, IDeviceIdentification
+    : DatabaseIdEntityModel, IDeviceIdentification
 {
     public DeviceIdentificationModel(IDeviceIdentification? deviceIdentification)
     {

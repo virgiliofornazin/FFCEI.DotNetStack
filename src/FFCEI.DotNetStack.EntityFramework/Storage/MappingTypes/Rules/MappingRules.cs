@@ -1551,7 +1551,7 @@ public static class MappingRules
             DatabaseProviderType.MySql => $"BINARY(16)",
             DatabaseProviderType.Postgres => "UUID",
             DatabaseProviderType.Oracle => $"RAW(16)",
-            DatabaseProviderType.SqlServer => $"UNIQUEIDENTIFIER",
+            DatabaseProviderType.SqlServer => $"DATABASEIDENTIFIER",
             _ => throw new ArgumentOutOfRangeException(nameof(databaseProvider), databaseProvider, "Unsupported database provider."),
         };
 

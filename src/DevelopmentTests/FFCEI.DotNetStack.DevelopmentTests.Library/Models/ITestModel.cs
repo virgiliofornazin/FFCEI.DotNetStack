@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.Models.Interfaces;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.Models;
 
 public interface ITestModel
-    : IUniqueIdEntityModel, IExternalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
+    : IDatabaseIdEntityModel, IUniversalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
     bool BoolProperty { get; set; }
     sbyte Int8Property { get; set; }

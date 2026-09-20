@@ -108,7 +108,7 @@ public abstract class SessionManager(ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(session, nameof(session));
 
-        return ExpireSessionByExternalUniqueIdsAsync(session.TenantId, [session.ExternalUniqueId], cancellationToken);
+        return ExpireSessionByUniversalUniqueIdsAsync(session.TenantId, [session.UniversalUniqueId], cancellationToken);
     }
 
     public abstract Task<ISession> NewSessionAsync(
@@ -125,7 +125,7 @@ public abstract class SessionManager(ILogger logger)
 
     public abstract Task UpdateSessionTokenAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         string token,
         string refreshToken,
         CancellationToken cancellationToken = default);
@@ -135,9 +135,9 @@ public abstract class SessionManager(ILogger logger)
         IEnumerable<string> tokens,
         CancellationToken cancellationToken = default);
 
-    public abstract Task ExpireSessionByExternalUniqueIdsAsync(
+    public abstract Task ExpireSessionByUniversalUniqueIdsAsync(
         string tenantId,
-        IEnumerable<Guid> externalUniqueIds,
+        IEnumerable<Guid> universalUniqueIds,
         CancellationToken cancellationToken = default);
 
     public virtual async Task<ISession?> GetSessionByTokenAsync(
@@ -152,9 +152,9 @@ public abstract class SessionManager(ILogger logger)
         return sessions.FirstOrDefault();
     }
 
-    public abstract Task<ISession?> GetSessionByExternalUniqueIdAsync(
+    public abstract Task<ISession?> GetSessionByUniversalUniqueIdAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         CancellationToken cancellationToken = default);
 
     public abstract Task<IReadOnlyCollection<ISession>> GetSessionsAsync(

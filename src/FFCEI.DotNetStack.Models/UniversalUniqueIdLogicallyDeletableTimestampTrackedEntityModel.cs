@@ -2,10 +2,10 @@ using FFCEI.DotNetStack.Models.Interfaces;
 
 namespace FFCEI.DotNetStack.Models;
 
-public abstract class UniqueIdLogicallyDeletableTimestampTrackedEntityModel
-    : EntityModel, IUniqueIdEntityModel, ITimestampTrackedEntityModel, ILogicallyDeletableEntityModel
+public abstract class UniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
+    : EntityModel, IUniversalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
-    public long Id { get; set; }
+    public Guid UniversalUniqueId { get; set; }
     public bool IsLogicallyDeleted { get; set; }
     public DateTimeOffset? LogicallyDeletedTimestamp { get; set; }
     public bool WasLogicallyDeletedCascaded { get; set; }

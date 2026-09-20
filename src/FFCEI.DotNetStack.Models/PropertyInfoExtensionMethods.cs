@@ -27,27 +27,27 @@ public static class PropertyInfoExtensionMethods
         return propertyInfo.PropertyType.IsWriteableEntityModelNavigationCollection();
     }
 
-    private static readonly Type _externalUniqueIdPropertyType =
-        typeof(IExternalUniqueIdEntityModel).GetProperty(nameof(IExternalUniqueIdEntityModel.ExternalUniqueId))!.PropertyType;
+    private static readonly Type _universalUniqueIdPropertyType =
+        typeof(IUniversalUniqueIdEntityModel).GetProperty(nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId))!.PropertyType;
 
     private static readonly Type _idPropertyType =
-        typeof(IUniqueIdEntityModel).GetProperty(nameof(IUniqueIdEntityModel.Id))!.PropertyType;
+        typeof(IDatabaseIdEntityModel).GetProperty(nameof(IDatabaseIdEntityModel.Id))!.PropertyType;
 
     private static bool HasForeignKeySuffix(string propertyName, string suffix)
         => (propertyName.Length > suffix.Length) && propertyName.EndsWith(suffix, StringComparison.Ordinal);
 
-    public static bool IsIdOrExternalUniqueIdForeignKeyProperty(this PropertyInfo propertyInfo)
+    public static bool IsIdOrUniversalUniqueIdForeignKeyProperty(this PropertyInfo propertyInfo)
     {
         ArgumentNullException.ThrowIfNull(propertyInfo, nameof(propertyInfo));
 
-        if (HasForeignKeySuffix(propertyInfo.Name, nameof(IExternalUniqueIdEntityModel.ExternalUniqueId)))
+        if (HasForeignKeySuffix(propertyInfo.Name, nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId)))
         {
             var propertyType = propertyInfo.PropertyType;
 
-            return propertyType.NonNullableType() == _externalUniqueIdPropertyType;
+            return propertyType.NonNullableType() == _universalUniqueIdPropertyType;
         }
 
-        if (HasForeignKeySuffix(propertyInfo.Name, nameof(IUniqueIdEntityModel.Id)))
+        if (HasForeignKeySuffix(propertyInfo.Name, nameof(IDatabaseIdEntityModel.Id)))
         {
             var propertyType = propertyInfo.PropertyType;
 

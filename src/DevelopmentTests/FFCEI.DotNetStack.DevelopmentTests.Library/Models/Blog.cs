@@ -8,7 +8,7 @@ namespace FFCEI.DotNetStack.DevelopmentTests.Library.Models;
 [Index(nameof(Name), IsUnique = true)]
 [Index(nameof(Url), nameof(Id), IsUnique = false, IsDescending = [false, true])]
 public class Blog
-   : UniqueIdExternalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
+   : DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
 #if TEST_EFCORE_USE_INTERFACES
     , IBlog
 #endif
@@ -22,5 +22,10 @@ public class Blog
     public virtual Collection<BlogRow> BlogRows { get; } = [];
 #if TEST_EFCORE_USE_INTERFACES
     IReadOnlyCollection<IBlogRow> IBlog.BlogRows => BlogRows;
+#endif
+
+    public virtual BlogData? BlogData { get; set; }
+#if TEST_EFCORE_USE_INTERFACES
+    IBlogData? IBlog.BlogData => BlogData;
 #endif
 }

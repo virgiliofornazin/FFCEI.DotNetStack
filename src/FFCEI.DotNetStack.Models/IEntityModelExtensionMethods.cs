@@ -33,18 +33,18 @@ public static class IEntityModelExtensionMethods
             throw new InvalidOperationException("Source and destination must be assignable types.");
         }
 
-        if (source is IUniqueIdEntityModel sourceId && destination is IUniqueIdEntityModel destinationId)
+        if (source is IDatabaseIdEntityModel sourceId && destination is IDatabaseIdEntityModel destinationId)
         {
             destinationId.Id = sourceId.Id;
 
-            copyCallback?.Invoke(destination, source, nameof(IUniqueIdEntityModel.Id), destinationId.Id);
+            copyCallback?.Invoke(destination, source, nameof(IDatabaseIdEntityModel.Id), destinationId.Id);
         }
 
-        if (source is IExternalUniqueIdEntityModel sourceExternalId && destination is IExternalUniqueIdEntityModel destinationExternalId)
+        if (source is IUniversalUniqueIdEntityModel sourceExternalId && destination is IUniversalUniqueIdEntityModel destinationExternalId)
         {
-            destinationExternalId.ExternalUniqueId = sourceExternalId.ExternalUniqueId;
+            destinationExternalId.UniversalUniqueId = sourceExternalId.UniversalUniqueId;
 
-            copyCallback?.Invoke(destination, source, nameof(IExternalUniqueIdEntityModel.ExternalUniqueId), destinationExternalId.ExternalUniqueId);
+            copyCallback?.Invoke(destination, source, nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId), destinationExternalId.UniversalUniqueId);
         }
     }
 
@@ -148,9 +148,9 @@ public static class IEntityModelExtensionMethods
 
     public static void GenerateModelAutomaticPropertiesForSave(this IEntityModel entityModel, DateTimeOffset timestamp)
     {
-        if (entityModel is IExternalUniqueIdEntityModel externalUniqueIdEntityModel)
+        if (entityModel is IUniversalUniqueIdEntityModel universalUniqueIdEntityModel)
         {
-            _ = externalUniqueIdEntityModel.GenerateModelExternalUniqueId();
+            _ = universalUniqueIdEntityModel.GenerateModelUniversalUniqueId();
         }
 
         if (entityModel is ITimestampTrackedEntityModel timestampTrackedModel)

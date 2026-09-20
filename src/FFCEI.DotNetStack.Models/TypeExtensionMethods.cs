@@ -9,8 +9,8 @@ public static class TypeExtensionMethods
     public static readonly Type[] AllEntityModelInterfaceTypes =
     [
         typeof(IEntityModel),
-        typeof(IUniqueIdEntityModel),
-        typeof(IExternalUniqueIdEntityModel),
+        typeof(IDatabaseIdEntityModel),
+        typeof(IUniversalUniqueIdEntityModel),
         typeof(ILogicallyDeletableEntityModel),
         typeof(ITimestampTrackedEntityModel)
     ];
@@ -18,18 +18,18 @@ public static class TypeExtensionMethods
     public static readonly Type[] AllEntityModelImplementationTypes =
     [
         typeof(EntityModel),
-        typeof(UniqueIdEntityModel),
-        typeof(UniqueIdLogicallyDeletableEntityModel),
-        typeof(UniqueIdLogicallyDeletableTimestampTrackedEntityModel),
-        typeof(UniqueIdTimestampTrackedEntityModel),
-        typeof(UniqueIdExternalUniqueIdEntityModel),
-        typeof(UniqueIdExternalUniqueIdLogicallyDeletableEntityModel),
-        typeof(UniqueIdExternalUniqueIdLogicallyDeletableTimestampTrackedEntityModel),
-        typeof(UniqueIdExternalUniqueIdTimestampTrackedEntityModel),
-        typeof(ExternalUniqueIdEntityModel),
-        typeof(ExternalUniqueIdLogicallyDeletableEntityModel),
-        typeof(ExternalUniqueIdLogicallyDeletableTimestampTrackedEntityModel),
-        typeof(ExternalUniqueIdTimestampTrackedEntityModel),
+        typeof(DatabaseIdEntityModel),
+        typeof(DatabaseIdLogicallyDeletableEntityModel),
+        typeof(DatabaseIdLogicallyDeletableTimestampTrackedEntityModel),
+        typeof(DatabaseIdTimestampTrackedEntityModel),
+        typeof(DatabaseIdUniversalUniqueIdEntityModel),
+        typeof(DatabaseIdUniversalUniqueIdLogicallyDeletableEntityModel),
+        typeof(DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel),
+        typeof(DatabaseIdUniversalUniqueIdTimestampTrackedEntityModel),
+        typeof(UniversalUniqueIdEntityModel),
+        typeof(UniversalUniqueIdLogicallyDeletableEntityModel),
+        typeof(UniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel),
+        typeof(UniversalUniqueIdTimestampTrackedEntityModel),
         typeof(LogicallyDeletableEntityModel),
         typeof(LogicallyDeletableTimestampTrackedEntityModel),
         typeof(TimestampTrackedEntityModel)

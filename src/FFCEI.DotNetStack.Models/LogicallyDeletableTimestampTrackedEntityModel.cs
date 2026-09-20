@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.Models.Interfaces;
 namespace FFCEI.DotNetStack.Models;
 
 public abstract class LogicallyDeletableTimestampTrackedEntityModel
-    : EntityModel, ITimestampTrackedEntityModel, ILogicallyDeletableEntityModel
+    : EntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
     public bool IsLogicallyDeleted { get; set; }
     public DateTimeOffset? LogicallyDeletedTimestamp { get; set; }

@@ -76,6 +76,29 @@ public static class FluentApiGenericByReflectionExtensionMethods
         return referenceNavigationBuilder;
     }
 
+    public static ReferenceReferenceBuilder WithOneGeneric(this ReferenceNavigationBuilder navigation, Type masterEntityType, Type detailEntityType, string masterPropertyName)
+    {
+        ArgumentNullException.ThrowIfNull(navigation, nameof(navigation));
+        ArgumentNullException.ThrowIfNull(masterEntityType, nameof(masterEntityType));
+        ArgumentNullException.ThrowIfNull(detailEntityType, nameof(detailEntityType));
+        ArgumentNullException.ThrowIfNull(masterPropertyName, nameof(masterPropertyName));
+
+        var (_, withOneLambda) = masterEntityType.LambdaExpressionGenericEntityPropertyAsDelegate(masterPropertyName,
+            typeof(Func<,>).MakeGenericType(masterEntityType, detailEntityType));
+
+        var referenceReferenceBuilder = navigation.GetType()
+            .GetMethods()
+            .First(m => m.Name == nameof(ReferenceNavigationBuilder.WithOne)
+                && !m.IsGenericMethod
+                && m.GetParameters().Length == 1
+                && m.GetParameters()[0].ParameterType.IsGenericType
+                && m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(Expression<>))
+            .Invoke(navigation, [withOneLambda]) as ReferenceReferenceBuilder ??
+            throw new InvalidOperationException($"Could not create ReferenceReferenceBuilder for property '{masterPropertyName}' on entity type '{masterEntityType.Name}'");
+
+        return referenceReferenceBuilder;
+    }
+
     public static ReferenceCollectionBuilder WithManyGeneric(this ReferenceNavigationBuilder navigation, Type masterEntityType, Type detailEntityType, string masterPropertyName)
     {
         ArgumentNullException.ThrowIfNull(navigation, nameof(navigation));

@@ -46,39 +46,39 @@ public sealed class ForeignKeyReferenceMetadata
             IdPropertyName = null;
             IdProperty = null!;
         }
-        else if (referencedProperty.Name.EndsWith(nameof(IExternalUniqueIdEntityModel.ExternalUniqueId), StringComparison.InvariantCulture))
+        else if (referencedProperty.Name.EndsWith(nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId), StringComparison.InvariantCulture))
         {
             if (referencedProperty.PropertyType.NonNullableType() != typeof(Guid))
             {
-                throw new InvalidOperationException($"Property '{referencedProperty.Name}' ends with '{nameof(IExternalUniqueIdEntityModel.ExternalUniqueId)}' but its type is {referencedProperty.PropertyType.CSharpTypeName()}, not Guid.");
+                throw new InvalidOperationException($"Property '{referencedProperty.Name}' ends with '{nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId)}' but its type is {referencedProperty.PropertyType.CSharpTypeName()}, not Guid.");
             }
 
-            ExternalUniqueIdProperty = referencedProperty;
+            UniversalUniqueIdProperty = referencedProperty;
 
-            IdPropertyName = ExternalUniqueIdProperty.Name;
-            IdProperty = ExternalUniqueIdProperty;
+            IdPropertyName = UniversalUniqueIdProperty.Name;
+            IdProperty = UniversalUniqueIdProperty;
 
-            EntityPropertyName = referencedProperty.Name[..^nameof(IExternalUniqueIdEntityModel.ExternalUniqueId).Length];
-            EntityProperty = RequirePropertyInfo(properties, EntityPropertyName, "ForeignKeyAttribute:EntityPropertyName(ExternalUniqueId)");
+            EntityPropertyName = referencedProperty.Name[..^nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId).Length];
+            EntityProperty = RequirePropertyInfo(properties, EntityPropertyName, "ForeignKeyAttribute:EntityPropertyName(UniversalUniqueId)");
 
-            IsRequired = !ExternalUniqueIdProperty.PropertyType.IsNullable();
+            IsRequired = !UniversalUniqueIdProperty.PropertyType.IsNullable();
         }
-        else if (referencedProperty.Name.EndsWith(nameof(IUniqueIdEntityModel.Id), StringComparison.InvariantCulture))
+        else if (referencedProperty.Name.EndsWith(nameof(IDatabaseIdEntityModel.Id), StringComparison.InvariantCulture))
         {
             if (referencedProperty.PropertyType.NonNullableType() != typeof(long))
             {
-                throw new InvalidOperationException($"Property '{referencedProperty.Name}' ends with '{nameof(IUniqueIdEntityModel.Id)}' but its type is {referencedProperty.PropertyType.CSharpTypeName()}, not long.");
+                throw new InvalidOperationException($"Property '{referencedProperty.Name}' ends with '{nameof(IDatabaseIdEntityModel.Id)}' but its type is {referencedProperty.PropertyType.CSharpTypeName()}, not long.");
             }
 
-            UniqueIdProperty = referencedProperty;
+            DatabaseIdProperty = referencedProperty;
 
-            IdPropertyName = UniqueIdProperty.Name;
-            IdProperty = UniqueIdProperty;
+            IdPropertyName = DatabaseIdProperty.Name;
+            IdProperty = DatabaseIdProperty;
 
-            EntityPropertyName = referencedProperty.Name[..^nameof(IUniqueIdEntityModel.Id).Length];
-            EntityProperty = RequirePropertyInfo(properties, EntityPropertyName, "ForeignKeyAttribute:EntityPropertyName(UniqueId)");
+            EntityPropertyName = referencedProperty.Name[..^nameof(IDatabaseIdEntityModel.Id).Length];
+            EntityProperty = RequirePropertyInfo(properties, EntityPropertyName, "ForeignKeyAttribute:EntityPropertyName(DatabaseId)");
 
-            IsRequired = !UniqueIdProperty.PropertyType.IsNullable();
+            IsRequired = !DatabaseIdProperty.PropertyType.IsNullable();
         }
         else
         {
@@ -103,7 +103,7 @@ public sealed class ForeignKeyReferenceMetadata
     {
         if (string.IsNullOrWhiteSpace(IdPropertyName))
         {
-            var propertyCascadeChoice = (ExternalUniqueIdProperty ?? UniqueIdProperty ?? EntityProperty);
+            var propertyCascadeChoice = (UniversalUniqueIdProperty ?? DatabaseIdProperty ?? EntityProperty);
 
             IdPropertyName = propertyCascadeChoice?.Name;
         }
@@ -115,13 +115,13 @@ public sealed class ForeignKeyReferenceMetadata
 
     private void LookupMissingIdProperties(IReadOnlyCollection<ModelPropertyMetadata> properties)
     {
-        UniqueIdProperty ??= properties.FirstOrDefault(property => property.Name == $"{EntityPropertyName}{nameof(IUniqueIdEntityModel.Id)}")?.PropertyInfo;
-        ExternalUniqueIdProperty ??= properties.FirstOrDefault(property => property.Name == $"{EntityPropertyName}{nameof(IExternalUniqueIdEntityModel.ExternalUniqueId)}")?.PropertyInfo;
+        DatabaseIdProperty ??= properties.FirstOrDefault(property => property.Name == $"{EntityPropertyName}{nameof(IDatabaseIdEntityModel.Id)}")?.PropertyInfo;
+        UniversalUniqueIdProperty ??= properties.FirstOrDefault(property => property.Name == $"{EntityPropertyName}{nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId)}")?.PropertyInfo;
     }
 
     private void FixupRequiredAndDeleteBehaviour()
     {
-        IsRequired ??= !(ExternalUniqueIdProperty ?? UniqueIdProperty ?? EntityProperty)?.PropertyType.IsNullable() ?? false;
+        IsRequired ??= !(UniversalUniqueIdProperty ?? DatabaseIdProperty ?? EntityProperty)?.PropertyType.IsNullable() ?? false;
         DeleteBehavior ??= (IsRequired ?? false) ? Microsoft.EntityFrameworkCore.DeleteBehavior.Restrict : Microsoft.EntityFrameworkCore.DeleteBehavior.NoAction;
     }
 
@@ -134,6 +134,6 @@ public sealed class ForeignKeyReferenceMetadata
 
     public PropertyInfo EntityProperty { get; set; }
     public PropertyInfo IdProperty { get; set; }
-    public PropertyInfo? UniqueIdProperty { get; set; }
-    public PropertyInfo? ExternalUniqueIdProperty { get; set; }
+    public PropertyInfo? DatabaseIdProperty { get; set; }
+    public PropertyInfo? UniversalUniqueIdProperty { get; set; }
 }

@@ -4,7 +4,7 @@ using FFCEI.DotNetStack.Models;
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.Common;
 
 internal sealed class Session
-    : ExternalUniqueIdTimestampTrackedEntityModel, ISession
+    : UniversalUniqueIdTimestampTrackedEntityModel, ISession
 {
     public required string TenantId { get; set; }
     public required string AccountId { get; set; }

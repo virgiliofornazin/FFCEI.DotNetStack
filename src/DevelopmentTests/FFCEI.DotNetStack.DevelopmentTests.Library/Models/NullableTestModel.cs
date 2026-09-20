@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.Models;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.Models;
 
 public class NullableTestModel
-    : UniqueIdExternalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
+    : DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
 #if TEST_EFCORE_USE_INTERFACES
     , INullableTestModel
 #endif

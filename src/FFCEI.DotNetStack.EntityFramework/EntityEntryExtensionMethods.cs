@@ -34,14 +34,14 @@ public static class EntityEntryExtensionMethods
         ArgumentNullException.ThrowIfNull(entityEntry, nameof(entityEntry));
         ArgumentNullException.ThrowIfNull(entityModel, nameof(entityModel));
 
-        if (entityModel is IUniqueIdEntityModel uniqueIdEntityModel)
+        if (entityModel is IDatabaseIdEntityModel databaseIdEntityModel)
         {
-            entityEntry.Property(nameof(IUniqueIdEntityModel.Id)).CurrentValue = uniqueIdEntityModel.Id;
+            entityEntry.Property(nameof(IDatabaseIdEntityModel.Id)).CurrentValue = databaseIdEntityModel.Id;
         }
 
-        if (entityModel is IExternalUniqueIdEntityModel externalUniqueIdEntityModel)
+        if (entityModel is IUniversalUniqueIdEntityModel universalUniqueIdEntityModel)
         {
-            entityEntry.Property(nameof(IExternalUniqueIdEntityModel.ExternalUniqueId)).CurrentValue = externalUniqueIdEntityModel.ExternalUniqueId;
+            entityEntry.Property(nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId)).CurrentValue = universalUniqueIdEntityModel.UniversalUniqueId;
         }
 
         entityEntry.DetectChanges();

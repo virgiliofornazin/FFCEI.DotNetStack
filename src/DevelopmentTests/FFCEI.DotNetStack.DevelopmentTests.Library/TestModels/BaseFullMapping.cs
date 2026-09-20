@@ -5,7 +5,7 @@ using FFCEI.DotNetStack.Models;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
 
 public abstract class BaseFullMapping
-    : UniqueIdExternalUniqueIdLogicallyDeletableTimestampTrackedEntityModel, IFullMapping
+    : DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel, IFullMapping
 {
     [BoolColumnMappingType(BoolColumnMappingType.Default)]
     public bool BoolDefault { get; set; }

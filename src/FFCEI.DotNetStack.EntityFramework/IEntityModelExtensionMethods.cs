@@ -25,8 +25,10 @@ public static class IEntityModelExtensionMethods
 
     public static void AddEntityToForeignKeyReferencesNavigations(this IEntityModel entity, DbContext context, EntityModelPropertyMap entityPropertyMap)
         => AddRemoveEntityInForeignKeyReferencesNavigationsOf(entity, context, entityPropertyMap, adding: true);
+
     public static void RemoveEntityFromForeignKeyReferencesNavigations(this IEntityModel entity, DbContext context, EntityModelPropertyMap entityPropertyMap)
         => AddRemoveEntityInForeignKeyReferencesNavigationsOf(entity, context, entityPropertyMap, adding: false);
+
     public static void AddRemoveEntityInForeignKeyReferencesNavigations(this IEntityModel entity, DbContext context, EntityModelPropertyMap entityPropertyMap, bool adding)
         => AddRemoveEntityInForeignKeyReferencesNavigationsOf(entity, context, entityPropertyMap, adding);
 
@@ -90,9 +92,9 @@ public static class IEntityModelExtensionMethods
                 continue;
             }
 
-            var isWriteableNavigation = navigation.GetType().IsWriteableEntityModelNavigationCollection();
+            var isWriteableNavigationCollection = navigation.GetType().IsWriteableEntityModelNavigationCollection();
 
-            if (isWriteableNavigation)
+            if (isWriteableNavigationCollection)
             {
                 _ = (adding ? addEntityFromCollectionMethod : removeEntityFromCollectionMethod).Invoke(null, [navigation, entity]);
             }

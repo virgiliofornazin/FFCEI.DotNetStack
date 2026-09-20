@@ -21,7 +21,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         var result = new Session()
         {
-            ExternalUniqueId = model.ExternalUniqueId,
+            UniversalUniqueId = model.UniversalUniqueId,
             TenantId = model.TenantId,
             AccountId = model.AccountId,
             Token = model.Token,
@@ -187,12 +187,12 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         ArgumentNullException.ThrowIfNull(session, nameof(session));
 
-        var externalUniqueId = session.ExternalUniqueId;
+        var universalUniqueId = session.UniversalUniqueId;
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
         var existingSession = await scopeAndService.RequiredService.Sessions.FirstOrDefaultAsync(session =>
-            session.ExternalUniqueId == externalUniqueId, cancellationToken).ConfigureAwait(false);
+            session.UniversalUniqueId == universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         if (existingSession == null)
         {
@@ -274,7 +274,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
     public override async Task UpdateSessionTokenAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         string token,
         string refreshToken,
         CancellationToken cancellationToken = default)
@@ -288,15 +288,15 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
         var existingSession = await scopeAndService.RequiredService.Sessions.FirstOrDefaultAsync(session =>
-            session.TenantId == tenantId && session.ExternalUniqueId == externalUniqueId, cancellationToken).ConfigureAwait(false);
+            session.TenantId == tenantId && session.UniversalUniqueId == universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         if (existingSession == null)
         {
-            throw new InvalidOperationException($"Invalid session {externalUniqueId}");
+            throw new InvalidOperationException($"Invalid session {universalUniqueId}");
         }
 
         var hasToken = await scopeAndService.RequiredService.Sessions.AnyAsync(session =>
-            session.TenantId == tenantId && session.Token == token && session.ExternalUniqueId != externalUniqueId, cancellationToken).ConfigureAwait(false);
+            session.TenantId == tenantId && session.Token == token && session.UniversalUniqueId != universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         if (hasToken)
         {
@@ -332,9 +332,9 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         }
     }
 
-    public override async Task ExpireSessionByExternalUniqueIdsAsync(
+    public override async Task ExpireSessionByUniversalUniqueIdsAsync(
         string tenantId,
-        IEnumerable<Guid> externalUniqueIds,
+        IEnumerable<Guid> universalUniqueIds,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -343,10 +343,10 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var externalUniqueIdSet = externalUniqueIds.ToHashSet();
+        var universalUniqueIdSet = universalUniqueIds.ToHashSet();
 
         var existingSessions = await scopeAndService.RequiredService.Sessions.Where(session =>
-            session.TenantId == tenantId && externalUniqueIdSet.Contains(session.ExternalUniqueId)).ToListAsync(cancellationToken).ConfigureAwait(false);
+            session.TenantId == tenantId && universalUniqueIdSet.Contains(session.UniversalUniqueId)).ToListAsync(cancellationToken).ConfigureAwait(false);
 
         if (existingSessions.Count > 0)
         {
@@ -354,9 +354,9 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         }
     }
 
-    public override async Task<ISession?> GetSessionByExternalUniqueIdAsync(
+    public override async Task<ISession?> GetSessionByUniversalUniqueIdAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -366,7 +366,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
         var existingSession = await scopeAndService.RequiredService.Sessions.FirstOrDefaultAsync(session =>
-            session.TenantId == tenantId && session.ExternalUniqueId == externalUniqueId, cancellationToken).ConfigureAwait(false);
+            session.TenantId == tenantId && session.UniversalUniqueId == universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         return existingSession == null ? null : Map(existingSession);
     }

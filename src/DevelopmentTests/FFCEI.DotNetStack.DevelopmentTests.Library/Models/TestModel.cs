@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.Models;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.Models;
 
 public class TestModel
-    : UniqueIdExternalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
+    : DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
 #if TEST_EFCORE_USE_INTERFACES
     , ITestModel
 #endif

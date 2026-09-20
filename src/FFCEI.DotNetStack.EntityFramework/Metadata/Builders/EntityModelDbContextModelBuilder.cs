@@ -6,6 +6,7 @@ using FFCEI.DotNetStack.Models;
 using FFCEI.DotNetStack.Models.Interfaces;
 using FFCEI.DotNetStack.Models.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -141,9 +142,9 @@ public static class EntityModelDbContextModelBuilder
             EntityFrameworkLog.MappedTable(logger, entityTypeModelImplementationType.Name, objectName);
         }
 
-        if (entityTypeModelImplementationType.Implements<IUniqueIdEntityModel>())
+        if (entityTypeModelImplementationType.Implements<IDatabaseIdEntityModel>())
         {
-            var idProperty = entity.Property(nameof(IUniqueIdEntityModel.Id));
+            var idProperty = entity.Property(nameof(IDatabaseIdEntityModel.Id));
 
             if (!isView)
             {
@@ -151,32 +152,32 @@ public static class EntityModelDbContextModelBuilder
                     .IsRequired(true)
                     .ValueGeneratedOnAdd();
 
-                _ = entity.HasKey(nameof(IUniqueIdEntityModel.Id))
+                _ = entity.HasKey(nameof(IDatabaseIdEntityModel.Id))
                     .HasName($"{objectName}_PK");
 
                 hasKey = true;
             }
         }
 
-        if (entityTypeModelImplementationType.Implements<IExternalUniqueIdEntityModel>())
+        if (entityTypeModelImplementationType.Implements<IUniversalUniqueIdEntityModel>())
         {
-            var externalUniqueIdProperty = entity.Property(nameof(IExternalUniqueIdEntityModel.ExternalUniqueId));
+            var universalUniqueIdProperty = entity.Property(nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId));
 
             if (!isView)
             {
-                _ = externalUniqueIdProperty
+                _ = universalUniqueIdProperty
                     .IsRequired(true);
 
                 if (!hasKey)
                 {
-                    _ = entity.HasKey(nameof(IExternalUniqueIdEntityModel.ExternalUniqueId))
+                    _ = entity.HasKey(nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId))
                         .HasName($"{objectName}_PK");
 
                     hasKey = true;
                 }
                 else
                 {
-                    _ = entity.HasIndex(nameof(IExternalUniqueIdEntityModel.ExternalUniqueId))
+                    _ = entity.HasIndex(nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId))
                         .IsUnique(true)
                         .HasDatabaseName(entityCounters.GenerateUniqueKeyName());
                 }
@@ -281,17 +282,17 @@ public static class EntityModelDbContextModelBuilder
         var foreignKeyEntityPropertyName = foreignKeyEntityProperty.Name;
         var foreignKeyIdPropertyName = foreignKeyReference.IdPropertyName ?? string.Empty;
         var foreignKeyIdProperty = entityModelPropertyMap.Properties.FirstOrDefault(p => p.Name == foreignKeyIdPropertyName);
-        var entityModelIdPropertyName = $"{foreignKeyEntityPropertyName}{nameof(IUniqueIdEntityModel.Id)}";
+        var entityModelIdPropertyName = $"{foreignKeyEntityPropertyName}{nameof(IDatabaseIdEntityModel.Id)}";
         var entityModelIdProperty = entityModelPropertyMap.Properties.FirstOrDefault(p => p.Name == entityModelIdPropertyName);
-        var entityModelExternalUniqueIdPropertyName = $"{foreignKeyEntityPropertyName}{nameof(IExternalUniqueIdEntityModel.ExternalUniqueId)}";
-        var entityModelExternalUniqueIdProperty = entityModelPropertyMap.Properties.FirstOrDefault(p => p.Name == entityModelExternalUniqueIdPropertyName);
+        var entityModelUniversalUniqueIdPropertyName = $"{foreignKeyEntityPropertyName}{nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId)}";
+        var entityModelUniversalUniqueIdProperty = entityModelPropertyMap.Properties.FirstOrDefault(p => p.Name == entityModelUniversalUniqueIdPropertyName);
 
         foreignKeyIdPropertyName = !string.IsNullOrWhiteSpace(foreignKeyIdPropertyName) ?
             foreignKeyIdPropertyName : (foreignKeyIdProperty == entityModelIdProperty ? entityModelIdPropertyName :
-            (foreignKeyIdProperty == entityModelExternalUniqueIdProperty ? entityModelExternalUniqueIdPropertyName : null));
+            (foreignKeyIdProperty == entityModelUniversalUniqueIdProperty ? entityModelUniversalUniqueIdPropertyName : null));
 
         foreignKeyIdProperty ??= foreignKeyIdPropertyName == entityModelIdPropertyName ? entityModelIdProperty :
-            (foreignKeyIdPropertyName == entityModelExternalUniqueIdPropertyName ? entityModelExternalUniqueIdProperty : null);
+            (foreignKeyIdPropertyName == entityModelUniversalUniqueIdPropertyName ? entityModelUniversalUniqueIdProperty : null);
 
         if (foreignKeyIdProperty != null && foreignKeyIdPropertyName != null)
         {
@@ -310,33 +311,50 @@ public static class EntityModelDbContextModelBuilder
             var referenceNavigationBuilder = entity
                 .HasOneGeneric(foreignKeyEntityType, foreignKeyEntityPropertyName);
 
-            var referenceCollectionBuilder = string.IsNullOrWhiteSpace(reverseNavigationPropertyName) ?
-                referenceNavigationBuilder.WithMany() :
-                referenceNavigationBuilder.WithManyGeneric(foreignKeyEntityType, entityTypeModelImplementationType, reverseNavigationPropertyName);
+            IConventionForeignKeyBuilder? conventionForeignKeyBuilder = null;
 
-            if (!string.IsNullOrWhiteSpace(reverseNavigationPropertyName))
+            if (string.IsNullOrWhiteSpace(reverseNavigationPropertyName))
+            {
+                conventionForeignKeyBuilder = referenceNavigationBuilder.WithMany() as IConventionForeignKeyBuilder;
+            }
+            else
             {
                 var foreignEntityPropertyMap = EntityModelPropertyMapCache.Instance.GetOrAdd(foreignKeyEntityType);
 
                 ArgumentNullException.ThrowIfNull(foreignEntityPropertyMap, nameof(foreignEntityPropertyMap));
 
+                var property = foreignEntityPropertyMap.Properties.FirstOrDefault(p => p.Name == reverseNavigationPropertyName);
+
+                ArgumentNullException.ThrowIfNull(property, nameof(property));
+
+                if (property.PropertyInfo.PropertyType.IsEntityModelNavigationCollection())
+                {
+                    conventionForeignKeyBuilder = (referenceNavigationBuilder
+                        .WithManyGeneric(foreignKeyEntityType, entityTypeModelImplementationType, reverseNavigationPropertyName)
+                        .HasForeignKey(foreignKeyIdPropertyName)
+                        .HasConstraintName(constraintName) as IInfrastructure<IConventionForeignKeyBuilder>)?.Instance;
+                }
+                else
+                {
+                    conventionForeignKeyBuilder = (referenceNavigationBuilder
+                        .WithOneGeneric(foreignKeyEntityType, entityTypeModelImplementationType, reverseNavigationPropertyName)
+                        .HasForeignKey(entityTypeModelImplementationType, foreignKeyIdPropertyName)
+                        .HasConstraintName(constraintName) as IInfrastructure<IConventionForeignKeyBuilder>)?.Instance;
+                }
+
                 _ = foreignEntityPropertyMap.InternalForeignKeyNavigationReferences.GetOrAdd(entityTypeModelImplementationType,
                     (_) => new ForeignKeyReferenceNavigationMetadata(entityTypeModelImplementationType, foreignKeyReference));
             }
 
-            _ = referenceCollectionBuilder
-                .HasForeignKey(foreignKeyIdPropertyName)
-                .HasConstraintName(constraintName);
-
             if (isRequired.HasValue)
             {
-                _ = referenceCollectionBuilder
+                _ = conventionForeignKeyBuilder?
                     .IsRequired(isRequired.Value);
             }
 
             if (deleteBehaviour.HasValue)
             {
-                _ = referenceCollectionBuilder
+                _ = conventionForeignKeyBuilder?
                     .OnDelete(deleteBehaviour.Value);
             }
         }
@@ -346,9 +364,9 @@ public static class EntityModelDbContextModelBuilder
             _ = entity.Ignore(entityModelIdPropertyName);
         }
 
-        if (entityModelExternalUniqueIdProperty != foreignKeyIdProperty)
+        if (entityModelUniversalUniqueIdProperty != foreignKeyIdProperty)
         {
-            _ = entity.Ignore(entityModelExternalUniqueIdPropertyName);
+            _ = entity.Ignore(entityModelUniversalUniqueIdPropertyName);
         }
 
         if (foreignKeyIdProperty != null)

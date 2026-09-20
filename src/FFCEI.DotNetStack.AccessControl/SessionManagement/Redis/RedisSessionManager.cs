@@ -58,7 +58,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         {
             TenantId = GetRequiredStringField(sessionFields, "TenantId"),
             AccountId = GetOptionalStringField(sessionFields, "AccountId") ?? string.Empty,
-            ExternalUniqueId = ValueConversions.GuidFromString(GetRequiredStringField(sessionFields, "ExternalUniqueId")),
+            UniversalUniqueId = ValueConversions.GuidFromString(GetRequiredStringField(sessionFields, "UniversalUniqueId")),
             Token = GetRequiredStringField(sessionFields, "Token"),
             RefreshToken = GetRequiredStringField(sessionFields, "RefreshToken"),
             DeviceIdentification = new DeviceIdentification()
@@ -81,12 +81,12 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         return result;
     }
 
-    private static async Task CollectOverflowExternalUniqueIdsAsync(IDatabase redisDatabase, string indexKey, long maxSessions,
+    private static async Task CollectOverflowUniversalUniqueIdsAsync(IDatabase redisDatabase, string indexKey, long maxSessions,
         Dictionary<Guid, string> sessions)
     {
         var luaScript = LuaScript.Prepare(@"
-            local ExternalUniqueIds = redis.call('ZRANGE', @IndexKey, 0, -1)
-            local Overflow = #ExternalUniqueIds - @MaxCount
+            local UniversalUniqueIds = redis.call('ZRANGE', @IndexKey, 0, -1)
+            local Overflow = #UniversalUniqueIds - @MaxCount
 
             if Overflow <= 0 then
                 return {}
@@ -95,11 +95,11 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             local Result = {}
 
             for i = 1, Overflow do
-                local ExternalUniqueId = ExternalUniqueIds[i]
-                local TenantId = redis.call('HGET', 'idx:sessions:tenants', ExternalUniqueId)
+                local UniversalUniqueId = UniversalUniqueIds[i]
+                local TenantId = redis.call('HGET', 'idx:sessions:tenants', UniversalUniqueId)
 
                 if TenantId then
-                    table.insert(Result, ExternalUniqueId)
+                    table.insert(Result, UniversalUniqueId)
                     table.insert(Result, TenantId)
                 end
             end
@@ -114,14 +114,14 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             return;
         }
 
-        var overflowExternalUniqueIds = luaScriptResult.ToDictionary();
+        var overflowUniversalUniqueIds = luaScriptResult.ToDictionary();
 
-        foreach (var overflowId in overflowExternalUniqueIds)
+        foreach (var overflowId in overflowUniversalUniqueIds)
         {
-            var externalUniqueId = ValueConversions.GuidFromString(overflowId.Key.ToString());
+            var universalUniqueId = ValueConversions.GuidFromString(overflowId.Key.ToString());
             var tenantId = overflowId.Value.ToString()!;
 
-            sessions[externalUniqueId] = tenantId;
+            sessions[universalUniqueId] = tenantId;
         }
     }
 
@@ -143,41 +143,41 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             policies.MaximumSessionsPerAccountSpecificDevice.TryGetValue(deviceIdentificationType, out var devicePolicy) &&
             (devicePolicy.MaximumSessions != null) && (devicePolicy.MaximumSessions > 0))
         {
-            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+            await CollectOverflowUniversalUniqueIdsAsync(redisDatabase,
                 $"idx:tenant:{tenantId}:account:{accountId}:device:{deviceIdentificationType}:updated",
                 devicePolicy.MaximumSessions.Value, sessions).ConfigureAwait(false);
         }
         else if ((policies.MaximumSessionsPerAccountDevice != null) && (policies.MaximumSessionsPerAccountDevice > 0))
         {
-            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+            await CollectOverflowUniversalUniqueIdsAsync(redisDatabase,
                 $"idx:tenant:{tenantId}:account:{accountId}:device:{deviceIdentificationType}:updated",
                 policies.MaximumSessionsPerAccountDevice.Value, sessions).ConfigureAwait(false);
         }
 
         if ((policies.MaximumSessionsPerAccount != null) && (policies.MaximumSessionsPerAccount > 0))
         {
-            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+            await CollectOverflowUniversalUniqueIdsAsync(redisDatabase,
                 $"idx:tenant:{tenantId}:account:{accountId}:updated",
                 policies.MaximumSessionsPerAccount.Value, sessions).ConfigureAwait(false);
         }
 
         if ((policies.MaximumSessionsPerTenant != null) && (policies.MaximumSessionsPerTenant > 0))
         {
-            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+            await CollectOverflowUniversalUniqueIdsAsync(redisDatabase,
                 $"idx:tenant:{tenantId}:updated",
                 policies.MaximumSessionsPerTenant.Value, sessions).ConfigureAwait(false);
         }
 
         if ((policies.MaximumSessions != null) && (policies.MaximumSessions > 0))
         {
-            await CollectOverflowExternalUniqueIdsAsync(redisDatabase,
+            await CollectOverflowUniversalUniqueIdsAsync(redisDatabase,
                 "idx:sessions:updated",
                 policies.MaximumSessions.Value, sessions).ConfigureAwait(false);
         }
 
         foreach (var session in sessions)
         {
-            await ExpireSessionByExternalUniqueIdsAsync(session.Value, [session.Key], cancellationToken).ConfigureAwait(false);
+            await ExpireSessionByUniversalUniqueIdsAsync(session.Value, [session.Key], cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -226,13 +226,13 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             end
 
             local SessionTokenKey = 'token:'..TenantIdLocal..':'..@Token
-            local SessionExternalUniqueId = redis.call('GET', SessionTokenKey)
+            local SessionUniversalUniqueId = redis.call('GET', SessionTokenKey)
 
-            if (not SessionExternalUniqueId or SessionExternalUniqueId == false) then
+            if (not SessionUniversalUniqueId or SessionUniversalUniqueId == false) then
                 return { 'CALL_STATUS', 'NOK_INVALID_TOKEN' }
             end
 
-            local SessionKey = 'session:'..TenantIdLocal..':'..SessionExternalUniqueId
+            local SessionKey = 'session:'..TenantIdLocal..':'..SessionUniversalUniqueId
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
@@ -321,7 +321,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         var redisDatabase = await _connectionFactory.GetDatabaseAsync().ConfigureAwait(false);
 
         var luaScript = LuaScript.Prepare(@"
-            local SessionKey = 'session:'..@TenantId..':'..@ExternalUniqueId
+            local SessionKey = 'session:'..@TenantId..':'..@UniversalUniqueId
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp', 'AccountId', 'DeviceIdentification:DeviceType', 'Token')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
@@ -341,19 +341,19 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 'UpdatedTimestamp', @Now)
 
             local IndexTokenGlobal = 'idx:token:'..SessionToken
-            redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionGlobal = 'idx:sessions:updated'
-            redis.call('ZADD', IndexSessionGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionGlobal, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            redis.call('ZADD', IndexSessionTenant, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenant, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenantAccount = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':updated'
-            redis.call('ZADD', IndexSessionTenantAccount, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenantAccount, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenantAccountDevice = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':device:'..SessionDeviceIdentificationDeviceType..':updated'
-            redis.call('ZADD', IndexSessionTenantAccountDevice, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenantAccountDevice, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             return 'OK'
         ");
@@ -417,13 +417,13 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         var luaScript = LuaScript.Prepare(@"
             local unpack = table.unpack or unpack
 
-            local SessionKey = 'session:'..@TenantId..':'..@ExternalUniqueId
+            local SessionKey = 'session:'..@TenantId..':'..@UniversalUniqueId
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
 
             if SessionCreatedTimestamp and (not SessionFinalizedTimestamp or SessionFinalizedTimestamp == false) then
-                return 'NOK_DUPLICATED_EXTERNALUNIQUEID'
+                return 'NOK_DUPLICATED_UNIVERSALUNIQUEID'
             end
 
             local TokenKey = 'token:'..@TenantId..':'..@Token
@@ -436,7 +436,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             local hsetArgs =
             {
                 'TenantId', @TenantId,
-                'ExternalUniqueId', @ExternalUniqueId,
+                'UniversalUniqueId', @UniversalUniqueId,
                 'Token', @Token,
                 'RefreshToken', @RefreshToken,
                 'CreatedTimestamp', @Now,
@@ -480,25 +480,25 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
             redis.call('HSET', SessionKey, unpack(hsetArgs))
 
-            redis.call('SET', TokenKey, @ExternalUniqueId)
+            redis.call('SET', TokenKey, @UniversalUniqueId)
 
             redis.call('HSET', 'idx:sessions:tenants',
-                @ExternalUniqueId, @TenantId)
+                @UniversalUniqueId, @TenantId)
 
             local IndexTokenGlobal = 'idx:token:'..@Token
-            redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionGlobal = 'idx:sessions:updated'
-            redis.call('ZADD', IndexSessionGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionGlobal, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            redis.call('ZADD', IndexSessionTenant, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenant, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenantAccount = 'idx:tenant:'..@TenantId..':account:'..@AccountId..':updated'
-            redis.call('ZADD', IndexSessionTenantAccount, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenantAccount, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenantAccountDevice = 'idx:tenant:'..@TenantId..':account:'..@AccountId..':device:'..@DeviceIdentificationDeviceType..':updated'
-            redis.call('ZADD', IndexSessionTenantAccountDevice, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenantAccountDevice, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             return 'OK'
         ");
@@ -512,7 +512,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         {
             throw resultStatus switch
             {
-                "NOK_DUPLICATED_EXTERNALUNIQUEID" => new InvalidOperationException($"Duplicated external unique id {luaScriptParameters.ExternalUniqueId}"),
+                "NOK_DUPLICATED_UNIVERSALUNIQUEID" => new InvalidOperationException($"Duplicated external unique id {luaScriptParameters.UniversalUniqueId}"),
                 "NOK_DUPLICATED_TOKEN" => new InvalidOperationException($"Duplicated token {luaScriptParameters.Token}"),
                 _ => new InvalidOperationException($"Unexpected error")
             };
@@ -526,7 +526,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
     public override async Task UpdateSessionTokenAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         string token,
         string refreshToken,
         CancellationToken cancellationToken = default)
@@ -540,7 +540,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         var redisDatabase = await _connectionFactory.GetDatabaseAsync().ConfigureAwait(false);
 
         var luaScript = LuaScript.Prepare(@"
-            local SessionKey = 'session:'..@TenantId..':'..@ExternalUniqueId
+            local SessionKey = 'session:'..@TenantId..':'..@UniversalUniqueId
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp', 'AccountId', 'DeviceIdentification:DeviceType', 'Token')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
@@ -570,10 +570,10 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 redis.call('DEL', SessionTokenKey)
 
                 local IndexSessionTokenGlobal = 'idx:token:'..SessionToken
-                redis.call('ZREM', IndexSessionTokenGlobal, @ExternalUniqueId)
+                redis.call('ZREM', IndexSessionTokenGlobal, @UniversalUniqueId)
             end
 
-            redis.call('SET', TokenKey, @ExternalUniqueId)
+            redis.call('SET', TokenKey, @UniversalUniqueId)
 
             redis.call('HSET', SessionKey,
                 'Token', @Token,
@@ -581,24 +581,24 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
                 'UpdatedTimestamp', @Now)
 
             local IndexTokenGlobal = 'idx:token:'..@Token
-            redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexTokenGlobal, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionGlobal = 'idx:sessions:updated'
-            redis.call('ZADD', IndexSessionGlobal, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionGlobal, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            redis.call('ZADD', IndexSessionTenant, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenant, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenantAccount = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':updated'
-            redis.call('ZADD', IndexSessionTenantAccount, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenantAccount, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             local IndexSessionTenantAccountDevice = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':device:'..SessionDeviceIdentificationDeviceType..':updated'
-            redis.call('ZADD', IndexSessionTenantAccountDevice, @NowAsUnixMilliseconds, @ExternalUniqueId)
+            redis.call('ZADD', IndexSessionTenantAccountDevice, @NowAsUnixMilliseconds, @UniversalUniqueId)
 
             return 'OK'
         ");
 
-        var luaScriptParameters = new LuaScriptParameters(tenantId, externalUniqueId, token, refreshToken);
+        var luaScriptParameters = new LuaScriptParameters(tenantId, universalUniqueId, token, refreshToken);
         var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
 
         var resultStatus = (string)luaScriptResult!;
@@ -607,8 +607,8 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         {
             throw resultStatus switch
             {
-                "NOK_INVALID" => new InvalidOperationException($"Invalid session {luaScriptParameters.ExternalUniqueId}"),
-                "NOK_EXPIRED" => new InvalidOperationException($"Expired session {luaScriptParameters.ExternalUniqueId}"),
+                "NOK_INVALID" => new InvalidOperationException($"Invalid session {luaScriptParameters.UniversalUniqueId}"),
+                "NOK_EXPIRED" => new InvalidOperationException($"Expired session {luaScriptParameters.UniversalUniqueId}"),
                 "NOK_DUPLICATED_TOKEN" => new InvalidOperationException($"Duplicated token {luaScriptParameters.Token}"),
                 _ => new InvalidOperationException($"Unexpected error")
             };
@@ -629,13 +629,13 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
         var luaScript = LuaScript.Prepare(@"
             local SessionTokenKey = 'token:'..@TenantId..':'..@Token
-            local SessionExternalUniqueId = redis.call('GET', SessionTokenKey)
+            local SessionUniversalUniqueId = redis.call('GET', SessionTokenKey)
 
-            if (not SessionExternalUniqueId or SessionExternalUniqueId == false) then
+            if (not SessionUniversalUniqueId or SessionUniversalUniqueId == false) then
                 return 'NOK_INVALID_TOKEN'
             end
 
-            local SessionKey = 'session:'..@TenantId..':'..SessionExternalUniqueId
+            local SessionKey = 'session:'..@TenantId..':'..SessionUniversalUniqueId
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp', 'AccountId', 'DeviceIdentification:DeviceType')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
@@ -662,22 +662,22 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
             redis.call('DEL', SessionTokenKey)
 
-            redis.call('HDEL', 'idx:sessions:tenants', @ExternalUniqueId)
+            redis.call('HDEL', 'idx:sessions:tenants', @UniversalUniqueId)
 
             local IndexSessionTokenGlobal = 'idx:token:'..@Token
-            redis.call('ZREM', IndexSessionTokenGlobal, @ExternalUniqueId)
+            redis.call('ZREM', IndexSessionTokenGlobal, @UniversalUniqueId)
 
             local IndexSessionGlobal = 'idx:sessions:updated'
-            redis.call('ZREM', IndexSessionGlobal, SessionExternalUniqueId)
+            redis.call('ZREM', IndexSessionGlobal, SessionUniversalUniqueId)
 
             local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            redis.call('ZREM', IndexSessionTenant, SessionExternalUniqueId)
+            redis.call('ZREM', IndexSessionTenant, SessionUniversalUniqueId)
 
             local IndexSessionTenantAccount = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':updated'
-            redis.call('ZREM', IndexSessionTenantAccount, SessionExternalUniqueId)
+            redis.call('ZREM', IndexSessionTenantAccount, SessionUniversalUniqueId)
 
             local IndexSessionTenantAccountDevice = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':device:'..SessionDeviceIdentificationDeviceType..':updated'
-            redis.call('ZREM', IndexSessionTenantAccountDevice, SessionExternalUniqueId)
+            redis.call('ZREM', IndexSessionTenantAccountDevice, SessionUniversalUniqueId)
 
             return 'OK'
         ");
@@ -702,9 +702,9 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         }
     }
 
-    public override async Task ExpireSessionByExternalUniqueIdsAsync(
+    public override async Task ExpireSessionByUniversalUniqueIdsAsync(
         string tenantId,
-        IEnumerable<Guid> externalUniqueIds,
+        IEnumerable<Guid> universalUniqueIds,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -714,7 +714,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         var redisDatabase = await _connectionFactory.GetDatabaseAsync().ConfigureAwait(false);
 
         var luaScript = LuaScript.Prepare(@"
-            local SessionKey = 'session:'..@TenantId..':'..@ExternalUniqueId
+            local SessionKey = 'session:'..@TenantId..':'..@UniversalUniqueId
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp', 'AccountId', 'DeviceIdentification:DeviceType', 'Token')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
@@ -740,29 +740,29 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
             redis.call('EXPIRE', SessionKey, 86400)
 
-            redis.call('HDEL', 'idx:sessions:tenants', @ExternalUniqueId)
+            redis.call('HDEL', 'idx:sessions:tenants', @UniversalUniqueId)
 
             local IndexSessionTokenGlobal = 'idx:token:'..SessionToken
-            redis.call('ZREM', IndexSessionTokenGlobal, @ExternalUniqueId)
+            redis.call('ZREM', IndexSessionTokenGlobal, @UniversalUniqueId)
 
             local IndexSessionGlobal = 'idx:sessions:updated'
-            redis.call('ZREM', IndexSessionGlobal, @ExternalUniqueId)
+            redis.call('ZREM', IndexSessionGlobal, @UniversalUniqueId)
 
             local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            redis.call('ZREM', IndexSessionTenant, @ExternalUniqueId)
+            redis.call('ZREM', IndexSessionTenant, @UniversalUniqueId)
 
             local IndexSessionTenantAccount = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':updated'
-            redis.call('ZREM', IndexSessionTenantAccount, @ExternalUniqueId)
+            redis.call('ZREM', IndexSessionTenantAccount, @UniversalUniqueId)
 
             local IndexSessionTenantAccountDevice = 'idx:tenant:'..@TenantId..':account:'..SessionAccountId..':device:'..SessionDeviceIdentificationDeviceType..':updated'
-            redis.call('ZREM', IndexSessionTenantAccountDevice, @ExternalUniqueId)
+            redis.call('ZREM', IndexSessionTenantAccountDevice, @UniversalUniqueId)
 
             return 'OK'
         ");
 
-        foreach (var externalUniqueId in externalUniqueIds)
+        foreach (var universalUniqueId in universalUniqueIds)
         {
-            var luaScriptParameters = new LuaScriptParameters(tenantId, externalUniqueId);
+            var luaScriptParameters = new LuaScriptParameters(tenantId, universalUniqueId);
             var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
 
             var resultStatus = (string)luaScriptResult!;
@@ -779,9 +779,9 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         }
     }
 
-    public override async Task<ISession?> GetSessionByExternalUniqueIdAsync(
+    public override async Task<ISession?> GetSessionByUniversalUniqueIdAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
@@ -791,7 +791,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
         var redisDatabase = await _connectionFactory.GetDatabaseAsync().ConfigureAwait(false);
 
         var luaScript = LuaScript.Prepare(@"
-            local SessionKey = 'session:'..@TenantId..':'..@ExternalUniqueId
+            local SessionKey = 'session:'..@TenantId..':'..@UniversalUniqueId
             local SessionExists = redis.call('HMGET', SessionKey, 'CreatedTimestamp', 'FinalizedTimestamp')
             local SessionCreatedTimestamp = SessionExists[1]
             local SessionFinalizedTimestamp = SessionExists[2]
@@ -814,7 +814,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             return FinalResponse
         ");
 
-        var luaScriptParameters = new LuaScriptParameters(tenantId, externalUniqueId);
+        var luaScriptParameters = new LuaScriptParameters(tenantId, universalUniqueId);
         var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
 
         var sessionFields = ExtractCallStatusCountAndFields(luaScriptResult, out var callStatus, out var count);
@@ -869,9 +869,9 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
         var luaScript = LuaScript.Prepare(@"
             local IndexSessionTenant = 'idx:tenant:'..@TenantId..':updated'
-            local ExternalUniqueIds = redis.call('ZRANGE', IndexSessionTenant, @StartIndex, @EndIndex)
+            local UniversalUniqueIds = redis.call('ZRANGE', IndexSessionTenant, @StartIndex, @EndIndex)
 
-            return ExternalUniqueIds
+            return UniversalUniqueIds
         ");
 
         var luaScriptParameters = PagingAlgorithms.ComputeStartIndexEndIndex(pageIndex, pageSize, out var startIndex, out var endIndex, forcePaging: true) && startIndex.HasValue && endIndex.HasValue ?
@@ -879,24 +879,24 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
         var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
 
-        var externalUniqueIdStrings = (RedisValue[])luaScriptResult!;
+        var universalUniqueIdStrings = (RedisValue[])luaScriptResult!;
 
-        if (externalUniqueIdStrings.Length == 0)
+        if (universalUniqueIdStrings.Length == 0)
         {
             return [];
         }
 
         var sessions = new List<ISession>();
 
-        foreach (var externalUniqueIdString in externalUniqueIdStrings ?? [])
+        foreach (var universalUniqueIdString in universalUniqueIdStrings ?? [])
         {
-            if (externalUniqueIdString.IsNullOrEmpty)
+            if (universalUniqueIdString.IsNullOrEmpty)
             {
                 continue;
             }
 
-            var externalUniqueId = ValueConversions.GuidFromString(externalUniqueIdString.ToString());
-            var session = await GetSessionByExternalUniqueIdAsync(tenantId, externalUniqueId, cancellationToken).ConfigureAwait(false);
+            var universalUniqueId = ValueConversions.GuidFromString(universalUniqueIdString.ToString());
+            var session = await GetSessionByUniversalUniqueIdAsync(tenantId, universalUniqueId, cancellationToken).ConfigureAwait(false);
 
             if (session != null)
             {
@@ -921,32 +921,32 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
 
         var luaScript = LuaScript.Prepare(@"
             local IndexSessionTenantAccount = 'idx:tenant:'..@TenantId..':account:'..@AccountId..':updated'
-            local ExternalUniqueIds = redis.call('ZRANGE', IndexSessionTenantAccount, 0, -1)
+            local UniversalUniqueIds = redis.call('ZRANGE', IndexSessionTenantAccount, 0, -1)
 
-            return ExternalUniqueIds
+            return UniversalUniqueIds
         ");
 
         var luaScriptParameters = new LuaScriptParameters(tenantId, accountId, isAccount: true);
         var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
 
-        var externalUniqueIdStringss = (RedisValue[])luaScriptResult!;
+        var universalUniqueIdStringss = (RedisValue[])luaScriptResult!;
 
-        if (externalUniqueIdStringss.Length == 0)
+        if (universalUniqueIdStringss.Length == 0)
         {
             return [];
         }
 
         var sessions = new List<ISession>();
 
-        foreach (var externalUniqueIdString in externalUniqueIdStringss ?? [])
+        foreach (var universalUniqueIdString in universalUniqueIdStringss ?? [])
         {
-            if (externalUniqueIdString.IsNullOrEmpty)
+            if (universalUniqueIdString.IsNullOrEmpty)
             {
                 continue;
             }
 
-            var externalUniqueId = ValueConversions.GuidFromString(externalUniqueIdString.ToString());
-            var session = await GetSessionByExternalUniqueIdAsync(tenantId, externalUniqueId, cancellationToken).ConfigureAwait(false);
+            var universalUniqueId = ValueConversions.GuidFromString(universalUniqueIdString.ToString());
+            var session = await GetSessionByUniversalUniqueIdAsync(tenantId, universalUniqueId, cancellationToken).ConfigureAwait(false);
 
             if (session != null)
             {

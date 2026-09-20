@@ -11,7 +11,7 @@ internal sealed class LuaScriptParameters
     {
         TenantId = session.TenantId;
         AccountId = session.AccountId;
-        ExternalUniqueId = ValueConversions.GuidToString(session.ExternalUniqueId);
+        UniversalUniqueId = ValueConversions.GuidToString(session.UniversalUniqueId);
         Token = session.Token;
         RefreshToken = session.RefreshToken;
         DeviceIdentificationUserAgent = session.DeviceIdentification.UserAgent;
@@ -44,10 +44,10 @@ internal sealed class LuaScriptParameters
         }
     }
 
-    public LuaScriptParameters(string tenantId, Guid externalUniqueId, string? token = null, string? refreshToken = null)
+    public LuaScriptParameters(string tenantId, Guid universalUniqueId, string? token = null, string? refreshToken = null)
     {
         TenantId = tenantId;
-        ExternalUniqueId = ValueConversions.GuidToString(externalUniqueId);
+        UniversalUniqueId = ValueConversions.GuidToString(universalUniqueId);
         Token = token;
         RefreshToken = refreshToken;
     }
@@ -81,10 +81,10 @@ internal sealed class LuaScriptParameters
         EndIndex = endIndex;
     }
 
-    public LuaScriptParameters(string tenantId, IEnumerable<Guid> externalUniqueIds)
+    public LuaScriptParameters(string tenantId, IEnumerable<Guid> universalUniqueIds)
     {
         TenantId = tenantId;
-        ExternalUniqueIds = JsonSerializer.OptimizedForMessagingInstance.SerializedCollectionToString(externalUniqueIds.Select(externalUniqueId => ValueConversions.GuidToString(externalUniqueId)));
+        UniversalUniqueIds = JsonSerializer.OptimizedForMessagingInstance.SerializedCollectionToString(universalUniqueIds.Select(universalUniqueId => ValueConversions.GuidToString(universalUniqueId)));
     }
 
     public LuaScriptParameters(string tenantId, IEnumerable<string> tokens)
@@ -100,7 +100,7 @@ internal sealed class LuaScriptParameters
     public long NowAsUnixMilliseconds => ValueConversions.DateTimeOffsetUtcToUnixMilliseconds(_now);
     public string TenantId { get; internal set; } = null!;
     public string? AccountId { get; internal set; }
-    public string? ExternalUniqueId { get; internal set; }
+    public string? UniversalUniqueId { get; internal set; }
     public string? Token { get; internal set; }
     public string? RefreshToken { get; internal set; }
     public string? DeviceIdentificationUserAgent { get; internal set; }
@@ -122,6 +122,6 @@ internal sealed class LuaScriptParameters
     public long? MaximumSessionsPerAccount { get; internal set; }
     public long? MaximumSessionsPerAccountDevice { get; internal set; }
     public long? MaximumSessionsPerAccountDeviceSpecific { get; internal set; }
-    public string? ExternalUniqueIds { get; internal set; }
+    public string? UniversalUniqueIds { get; internal set; }
     public string? Tokens { get; internal set; }
 }

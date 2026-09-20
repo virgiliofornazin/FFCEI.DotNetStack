@@ -17,7 +17,7 @@ public interface ISessionManager
 
     Task UpdateSessionTokenAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         string token,
         string refreshToken,
         CancellationToken cancellationToken = default);
@@ -27,9 +27,9 @@ public interface ISessionManager
         IEnumerable<string> tokens,
         CancellationToken cancellationToken = default);
 
-    Task ExpireSessionByExternalUniqueIdsAsync(
+    Task ExpireSessionByUniversalUniqueIdsAsync(
         string tenantId,
-        IEnumerable<Guid> externalUniqueIds,
+        IEnumerable<Guid> universalUniqueIds,
         CancellationToken cancellationToken = default);
 
     Task<ISession?> GetSessionByTokenAsync(
@@ -37,9 +37,9 @@ public interface ISessionManager
         string token,
         CancellationToken cancellationToken = default);
 
-    Task<ISession?> GetSessionByExternalUniqueIdAsync(
+    Task<ISession?> GetSessionByUniversalUniqueIdAsync(
         string tenantId,
-        Guid externalUniqueId,
+        Guid universalUniqueId,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<ISession>> GetSessionsAsync(

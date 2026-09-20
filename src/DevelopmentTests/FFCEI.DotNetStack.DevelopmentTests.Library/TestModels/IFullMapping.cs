@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.Models.Interfaces;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
 
 public interface IFullMapping
-    : IUniqueIdEntityModel, IExternalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
+    : IDatabaseIdEntityModel, IUniversalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
     bool BoolDefault { get; set; }
     bool BoolAsNumeric { get; set; }

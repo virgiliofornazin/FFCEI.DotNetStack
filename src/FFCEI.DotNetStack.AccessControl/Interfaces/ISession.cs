@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.Models.Interfaces;
 namespace FFCEI.DotNetStack.AccessControl.Interfaces;
 
 public interface ISession
-    : IExternalUniqueIdEntityModel, ISessionExpiration
+    : IUniversalUniqueIdEntityModel, ISessionExpiration
 {
     string TenantId { get; }
     string AccountId { get; }

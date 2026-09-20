@@ -18,6 +18,7 @@ public class BloggingEntityModelRepositoryContainer(BloggingContext context)
 #if TEST_EFCORE_USE_INTERFACES
     public IEntityModelRepository<IBlog> Blogs => Repository<Blog, IBlog>(ref field);
     public IEntityModelRepository<IBlogRow> BlogRows => Repository<BlogRow, IBlogRow>(ref field);
+    public IEntityModelRepository<IBlogData> BlogDatas => Repository<BlogData, IBlogData>(ref field);
     public IEntityModelRepository<ITestModel> TestModels => Repository<TestModel, ITestModel>(ref field);
     public IEntityModelRepository<INullableTestModel> NullableTestModels => Repository<NullableTestModel, INullableTestModel>(ref field);
 #else
@@ -25,5 +26,6 @@ public class BloggingEntityModelRepositoryContainer(BloggingContext context)
     public IEntityModelRepository<NullableTestModel> NullableTestModels => Repository(ref field);
     public IEntityModelRepository<Blog> Blogs => Repository(ref field);
     public IEntityModelRepository<BlogRow> BlogRows => Repository(ref field);
+    public IEntityModelRepository<BlogData> BlogDatas => Repository(ref field);
 #endif
 }

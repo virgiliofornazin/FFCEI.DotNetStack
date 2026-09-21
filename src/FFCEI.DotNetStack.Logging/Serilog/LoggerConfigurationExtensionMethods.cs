@@ -32,6 +32,7 @@ public static class LoggerConfigurationExtensionMethods
             .Enrich.FromLogContext()
             .Enrich.WithEnvironmentName()
             .Enrich.WithAssemblyName()
+            .Enrich.WithAssemblyVersion()
             .Enrich.WithThreadId()
             .Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
@@ -50,7 +51,6 @@ public static class LoggerConfigurationExtensionMethods
             loggerConfiguration = loggerConfiguration
                 .Enrich.WithMachineName()
                 .Enrich.WithEnvironmentUserName()
-                .Enrich.WithAssemblyVersion()
                 .Enrich.WithProcessId()
                 .Enrich.WithProcessName();
         }

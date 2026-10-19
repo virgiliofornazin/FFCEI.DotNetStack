@@ -150,7 +150,7 @@ public static class IEntityModelExtensionMethods
     {
         if (entityModel is IUniversalUniqueIdEntityModel universalUniqueIdEntityModel)
         {
-            _ = universalUniqueIdEntityModel.GenerateModelUniversalUniqueId();
+            universalUniqueIdEntityModel.GenerateModelUniversalUniqueId();
         }
 
         if (entityModel is ITimestampTrackedEntityModel timestampTrackedModel)

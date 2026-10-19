@@ -4,7 +4,7 @@ namespace FFCEI.DotNetStack.Models;
 
 public static class IUniversalUniqueIdExtensionMethods
 {
-    public static Guid GenerateModelUniversalUniqueId(this IUniversalUniqueIdEntityModel universalUniqueIdEntityModel)
+    public static void GenerateModelUniversalUniqueId(this IUniversalUniqueIdEntityModel universalUniqueIdEntityModel)
     {
         ArgumentNullException.ThrowIfNull(universalUniqueIdEntityModel, nameof(universalUniqueIdEntityModel));
 
@@ -12,7 +12,5 @@ public static class IUniversalUniqueIdExtensionMethods
         {
             universalUniqueIdEntityModel.UniversalUniqueId = Guid.CreateVersion7();
         }
-
-        return universalUniqueIdEntityModel.UniversalUniqueId;
     }
 }

@@ -9,5 +9,7 @@ A collection of self-develop libraries to create Web API Services in .NET (coded
 - Serialization support for inter-service messaging using Json / MessagePack specializations;
 - MessageBroker support (.NET Channels, AmazonSQS/SNS, Azure Service Bus, Google PubSub, Kakfa, Qpid/Proton AMQP 1.0), RabbitMQ)
 - Configuration support (ENV file loading)
+- Logging (Console, Debugger, OpenTelemetry, Seq, Syslog, Windows Eventlog)
 - Compliance Redacting Library (LGPD / GPDR / custom redacting)
+- Telemetry (TODO) -> support for OpenTelemetry data for monitoring and diagnostics
 - AccessControl / WebApi (they are work in progress) -> support for authentication, authorization, session management, access control lists and JWT token authorization.

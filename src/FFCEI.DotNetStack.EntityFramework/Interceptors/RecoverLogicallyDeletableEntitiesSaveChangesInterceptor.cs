@@ -1,8 +1,8 @@
 using FFCEI.DotNetStack.EntityFramework.Metadata.Conventions;
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models;
-using FFCEI.DotNetStack.Models.Interfaces;
-using FFCEI.DotNetStack.Models.Reflection;
+using FFCEI.DotNetStack.EntityModels;
+using FFCEI.DotNetStack.EntityModels.Interfaces;
+using FFCEI.DotNetStack.EntityModels.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;

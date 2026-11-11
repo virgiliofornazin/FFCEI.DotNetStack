@@ -47,9 +47,11 @@ public static class JsonDefaults
 
     private static JsonSerializerOptions AddConvertersTo(JsonSerializerOptions options)
     {
+        options.Converters.Add(new JsonStringToEnumConverterFactory());
         options.Converters.Add(new JsonStringToDecimalConverterFactory());
         options.Converters.Add(new JsonStringToDoubleConverterFactory());
         options.Converters.Add(new JsonStringToFloatConverterFactory());
+        options.Converters.Add(new JsonStringToHalfConverterFactory());
         options.Converters.Add(new JsonStringToIntConverterFactory());
         options.Converters.Add(new JsonStringToUintConverterFactory());
         options.Converters.Add(new JsonStringToLongConverterFactory());

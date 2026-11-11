@@ -1,7 +1,7 @@
 using FFCEI.DotNetStack.EntityFramework.Interfaces;
 using FFCEI.DotNetStack.EntityFramework.Interfaces.Generic;
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models.Interfaces;
+using FFCEI.DotNetStack.EntityModels.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 

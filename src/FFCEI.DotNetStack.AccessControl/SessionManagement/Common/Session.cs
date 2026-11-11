@@ -1,5 +1,5 @@
 using FFCEI.DotNetStack.AccessControl.Interfaces;
-using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.EntityModels;
 
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.Common;
 

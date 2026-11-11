@@ -1,6 +1,6 @@
 using FFCEI.DotNetStack.EntityFramework.Attributes;
 using FFCEI.DotNetStack.EntityFramework.Storage.MappingTypes;
-using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.EntityModels;
 
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
 

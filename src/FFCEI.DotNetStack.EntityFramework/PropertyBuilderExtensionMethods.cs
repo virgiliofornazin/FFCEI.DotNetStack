@@ -2,7 +2,7 @@ using FFCEI.DotNetStack.EntityFramework.Attributes;
 using FFCEI.DotNetStack.EntityFramework.Storage.DataProtection;
 using FFCEI.DotNetStack.EntityFramework.Storage.MappingTypes.Rules;
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.EntityModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

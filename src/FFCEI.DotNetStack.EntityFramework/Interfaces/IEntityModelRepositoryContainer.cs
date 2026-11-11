@@ -1,5 +1,5 @@
 using FFCEI.DotNetStack.EntityFramework.Interfaces.Generic;
-using FFCEI.DotNetStack.Models.Interfaces;
+using FFCEI.DotNetStack.EntityModels.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace FFCEI.DotNetStack.EntityFramework.Interfaces;

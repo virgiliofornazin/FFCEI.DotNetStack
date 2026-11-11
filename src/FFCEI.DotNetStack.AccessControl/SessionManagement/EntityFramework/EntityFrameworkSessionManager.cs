@@ -1,11 +1,11 @@
 using FFCEI.DotNetStack.AccessControl.Interfaces;
 using FFCEI.DotNetStack.AccessControl.SessionManagement.Common;
-using FFCEI.DotNetStack.AccessControl.SessionManagement.EntityFramework.Models;
 using FFCEI.DotNetStack.EntityFramework;
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.EntityModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using FFCEI.DotNetStack.AccessControl.SessionManagement.EntityModels;
 
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.EntityFramework;
 
@@ -14,7 +14,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    private static Session Map(SessionModel model)
+    private static Session Map(SessionEntityModel model)
     {
         var deviceIdentification = model.DeviceIdentification;
         var attributes = model.Attributes;
@@ -61,7 +61,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId, nameof(accountId));
         ArgumentNullException.ThrowIfNull(policies, nameof(policies));
 
-        List<SessionModel> sessions = [];
+        List<SessionEntityModel> sessions = [];
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
@@ -132,7 +132,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         _ = await scopeAndService.RequiredService.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ExpireSessionsInDatabase(List<SessionModel> sessions,
+    private static async Task ExpireSessionsInDatabase(List<SessionEntityModel> sessions,
         ScopeAndServiceResult<SessionManagerEntityModelRepositoryContainer> scopeAndService,
         long maximumSessions, CancellationToken cancellationToken)
     {
@@ -234,7 +234,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
             throw new InvalidOperationException($"Duplicated token {token}");
         }
 
-        var newSession = new SessionModel()
+        var newSession = new SessionEntityModel()
         {
             TenantId = tenantId,
             AccountId = accountId,
@@ -253,7 +253,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         {
             foreach (var attribute in attributes)
             {
-                var mappedAttribute = new SessionAttributeModel()
+                var mappedAttribute = new SessionAttributeEntityModel()
                 {
                     Session = newSession,
                     AttributeName = attribute.Key,

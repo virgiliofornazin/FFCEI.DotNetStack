@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FFCEI.DotNetStack.Caching\FFCEI.DotNetStack.Caching.csproj" />
-    <ProjectReference Include="..\FFCEI.DotNetStack.Models\FFCEI.DotNetStack.Models.csproj" />
+    <ProjectReference Include="..\FFCEI.DotNetStack.EntityModels\FFCEI.DotNetStack.EntityModels.csproj" />
   </ItemGroup>
 
 </Project>

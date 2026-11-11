@@ -1,4 +1,4 @@
-using FFCEI.DotNetStack.DevelopmentTests.Library.Models;
+using FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 using FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
 using FFCEI.DotNetStack.EntityFramework;
 using FFCEI.DotNetStack.EntityFramework.Interfaces.Generic;
@@ -8,7 +8,7 @@ namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityFramework;
 public class BloggingEntityModelRepositoryContainer(BloggingContext context)
    : EntityModelRepositoryContainer(context)
 #if TEST_EFCORE_USE_INTERFACES
-    , IBloggingRepositoryContainer
+    , IBloggingEntityModelRepositoryContainer
 #endif
 {
 #if TEST_EFCORE_MAPPINGS

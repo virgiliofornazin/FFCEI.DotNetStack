@@ -2,7 +2,7 @@ using FFCEI.DotNetStack.AccessControl.Interfaces;
 using FFCEI.DotNetStack.AccessControl.SessionManagement.Common;
 using FFCEI.DotNetStack.Caching;
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.EntityModels;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 

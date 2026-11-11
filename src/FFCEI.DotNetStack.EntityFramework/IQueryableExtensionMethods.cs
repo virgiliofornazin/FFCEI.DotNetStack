@@ -1,7 +1,7 @@
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models;
-using FFCEI.DotNetStack.Models.Interfaces;
-using FFCEI.DotNetStack.Models.Reflection;
+using FFCEI.DotNetStack.EntityModels;
+using FFCEI.DotNetStack.EntityModels.Interfaces;
+using FFCEI.DotNetStack.EntityModels.Reflection;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;

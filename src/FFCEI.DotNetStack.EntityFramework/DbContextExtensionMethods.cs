@@ -1,4 +1,4 @@
-using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.EntityModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.InMemory.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Sqlite.Infrastructure.Internal;

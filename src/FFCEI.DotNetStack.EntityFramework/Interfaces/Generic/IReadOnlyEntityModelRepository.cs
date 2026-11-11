@@ -1,4 +1,4 @@
-using FFCEI.DotNetStack.Models.Interfaces;
+using FFCEI.DotNetStack.EntityModels.Interfaces;
 
 namespace FFCEI.DotNetStack.EntityFramework.Interfaces.Generic;
 

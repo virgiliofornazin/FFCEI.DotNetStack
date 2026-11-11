@@ -1,6 +1,6 @@
 using FFCEI.DotNetStack.EntityFramework.Interfaces;
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models;
+using FFCEI.DotNetStack.EntityModels;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 

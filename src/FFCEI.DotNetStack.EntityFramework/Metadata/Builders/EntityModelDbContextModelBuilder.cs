@@ -2,9 +2,9 @@ using FFCEI.DotNetStack.EntityFramework.Attributes;
 using FFCEI.DotNetStack.EntityFramework.Reflection;
 using FFCEI.DotNetStack.EntityFramework.Storage.MappingTypes.Rules;
 using FFCEI.DotNetStack.Framework;
-using FFCEI.DotNetStack.Models;
-using FFCEI.DotNetStack.Models.Interfaces;
-using FFCEI.DotNetStack.Models.Reflection;
+using FFCEI.DotNetStack.EntityModels;
+using FFCEI.DotNetStack.EntityModels.Interfaces;
+using FFCEI.DotNetStack.EntityModels.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -17,7 +17,7 @@ namespace FFCEI.DotNetStack.EntityFramework.Metadata.Builders;
 
 public static class EntityModelDbContextModelBuilder
 {
-    private static readonly string[] _skippedAssemblyNames = ["FFCEI.DotNetStack.EntityFramework", "FFCEI.DotNetStack.Models"];
+    private static readonly string[] _skippedAssemblyNames = ["FFCEI.DotNetStack.EntityFramework", "FFCEI.DotNetStack.EntityModels"];
 
     public static void BuildModels(ModelBuilder modelBuilder, DatabaseProviderType databaseProvider, Assembly startingAssembly, ILogger? logger = null)
     {
@@ -63,11 +63,11 @@ public static class EntityModelDbContextModelBuilder
 
                 if (!_skippedAssemblyNames.Contains(assemblyName))
                 {
-                    if (assemblyName.EndsWith(".Models", StringComparison.InvariantCulture))
+                    if (assemblyName.EndsWith(".EntityModels", StringComparison.InvariantCulture))
                     {
                         _ = assembliesMap.TryGetOrAddReference(assemblyName, (_) => { return Assembly.Load(assemblyName); });
 
-                        var assemblyEntityFrameworkName = assemblyName.Replace(".Models", ".EntityFramework", StringComparison.InvariantCulture);
+                        var assemblyEntityFrameworkName = assemblyName.Replace(".EntityModels", ".EntityFramework", StringComparison.InvariantCulture);
 
                         _ = assembliesMap.TryGetOrAddReference(assemblyEntityFrameworkName, (_) => { return Assembly.Load(assemblyEntityFrameworkName); });
                     }

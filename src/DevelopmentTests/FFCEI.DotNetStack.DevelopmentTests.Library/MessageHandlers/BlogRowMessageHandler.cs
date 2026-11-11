@@ -1,4 +1,4 @@
-using FFCEI.DotNetStack.DevelopmentTests.Library.Models;
+using FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 using FFCEI.DotNetStack.MessageBroker;
 using FFCEI.DotNetStack.MessageBroker.Interfaces;
 using FFCEI.DotNetStack.Serialization;

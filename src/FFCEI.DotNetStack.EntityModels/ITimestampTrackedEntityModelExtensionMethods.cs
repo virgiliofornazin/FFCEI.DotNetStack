@@ -4,7 +4,7 @@ namespace FFCEI.DotNetStack.EntityModels;
 
 public static class ITimestampTrackedEntityModelExtensionMethods
 {
-    public static void TouchModelTimestamps(this ITimestampTrackedEntityModel timestampTrackedModel, DateTimeOffset? timestamp = null)
+    public static void GenerateEntityModelTimestamps(this ITimestampTrackedEntityModel timestampTrackedModel, DateTimeOffset? timestamp = null)
     {
         ArgumentNullException.ThrowIfNull(timestampTrackedModel, nameof(timestampTrackedModel));
 

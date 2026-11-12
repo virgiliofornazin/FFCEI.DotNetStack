@@ -41,7 +41,7 @@ public sealed class GenerateAutomaticPropertyValuesSaveChangesInterceptor
         {
             if (entry.Entity is EntityModel entityModel)
             {
-                entityModel.GenerateModelAutomaticPropertiesForSave(currentTimestamp);
+                entityModel.GenerateEntityModelAutomaticPropertiesForSave(currentTimestamp);
             }
         }
     }

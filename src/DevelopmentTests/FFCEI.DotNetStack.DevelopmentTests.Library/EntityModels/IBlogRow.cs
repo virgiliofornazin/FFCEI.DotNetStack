@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.EntityModels.Interfaces;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 
 public interface IBlogRow
-    : IDatabaseIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
+    : IDatabaseUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
     long? LineRow { get; }
     string LineText { get; }

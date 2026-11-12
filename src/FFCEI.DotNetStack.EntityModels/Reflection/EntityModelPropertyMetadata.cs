@@ -5,9 +5,9 @@ using System.Reflection;
 namespace FFCEI.DotNetStack.EntityModels.Reflection;
 
 [DebuggerDisplay("Property: {Name,nq} [type: {CSharpTypeName,nq}]")]
-public sealed class ModelPropertyMetadata
+public sealed class EntityModelPropertyMetadata
 {
-    internal ModelPropertyMetadata(PropertyInfo propertyInfo)
+    internal EntityModelPropertyMetadata(PropertyInfo propertyInfo)
     {
         ArgumentNullException.ThrowIfNull(propertyInfo, nameof(propertyInfo));
 

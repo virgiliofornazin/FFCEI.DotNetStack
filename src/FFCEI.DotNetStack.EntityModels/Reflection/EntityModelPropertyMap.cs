@@ -14,7 +14,7 @@ public sealed class EntityModelPropertyMap
     internal ConcurrentDictionary<Type, ForeignKeyReferenceNavigationMetadata> InternalForeignKeyNavigationReferences = new();
 
     public Type EntityModelType { get; private set; }
-    public IReadOnlyCollection<ModelPropertyMetadata> Properties { get; private set; } = [];
+    public IReadOnlyCollection<EntityModelPropertyMetadata> Properties { get; private set; } = [];
     public IReadOnlyCollection<ForeignKeyReferenceMetadata> ForeignKeyReferences { get; private set; } = [];
     public IReadOnlyCollection<UniqueKeyReferenceMetadata> UniqueKeys { get; private set; } = [];
     public IReadOnlyCollection<ForeignKeyReferenceNavigationMetadata> ForeignKeyNavigationReferences => InternalForeignKeyNavigationReferences.Values.ToList().AsReadOnly();
@@ -42,7 +42,7 @@ public sealed class EntityModelPropertyMap
         var modelProperties = implementedProperties.Where(property => property.CanWrite || property.IsEntityModelNavigationCollection()).ToList();
         var modelForeignKeys = entityModelType.GetCustomAttributes<ForeignKeyReferenceAttribute>().ToList();
 
-        Properties = modelProperties.Select(property => new ModelPropertyMetadata(property)).ToList().AsReadOnly();
+        Properties = modelProperties.Select(property => new EntityModelPropertyMetadata(property)).ToList().AsReadOnly();
 
         var propertyForeignKeys = implementedProperties.SelectMany(property => property.GetCustomAttributes<ForeignKeyAttribute>()).ToList();
         var entityForeignKeyReferences = modelForeignKeys.Select(attribute => new ForeignKeyReferenceMetadata(attribute, Properties)).ToList();

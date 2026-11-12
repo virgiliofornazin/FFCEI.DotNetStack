@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.EntityModels.Interfaces;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 
 public interface IBlog
-   : IDatabaseIdEntityModel, IUniversalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
+   : IDatabaseUniqueIdEntityModel, IUniversalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
     string Name { get; }
 #pragma warning disable CA1056 // URI-like properties should not be strings

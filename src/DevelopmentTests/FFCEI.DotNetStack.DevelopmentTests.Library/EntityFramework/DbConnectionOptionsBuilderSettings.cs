@@ -15,6 +15,7 @@ public static class DbConnectionOptionsBuilderSettings
         // TODO: POOLING?
 
         _ = optionsBuilder.UseSqlite(serviceProvider.GetRequiredService<SqliteConnection>());
+
         /*
         _ = optionsBuilder.UseInMemoryDatabase($"{databaseName}");
         _ = optionsBuilder.UseSqlite(serviceProvider.GetRequiredService<SqliteConnection>());

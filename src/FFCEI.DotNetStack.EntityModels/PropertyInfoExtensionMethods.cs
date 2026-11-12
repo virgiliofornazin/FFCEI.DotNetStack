@@ -31,7 +31,7 @@ public static class PropertyInfoExtensionMethods
         typeof(IUniversalUniqueIdEntityModel).GetProperty(nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId))!.PropertyType;
 
     private static readonly Type _idPropertyType =
-        typeof(IDatabaseIdEntityModel).GetProperty(nameof(IDatabaseIdEntityModel.Id))!.PropertyType;
+        typeof(IDatabaseUniqueIdEntityModel).GetProperty(nameof(IDatabaseUniqueIdEntityModel.Id))!.PropertyType;
 
     private static bool HasForeignKeySuffix(string propertyName, string suffix)
         => (propertyName.Length > suffix.Length) && propertyName.EndsWith(suffix, StringComparison.Ordinal);
@@ -47,7 +47,7 @@ public static class PropertyInfoExtensionMethods
             return propertyType.NonNullableType() == _universalUniqueIdPropertyType;
         }
 
-        if (HasForeignKeySuffix(propertyInfo.Name, nameof(IDatabaseIdEntityModel.Id)))
+        if (HasForeignKeySuffix(propertyInfo.Name, nameof(IDatabaseUniqueIdEntityModel.Id)))
         {
             var propertyType = propertyInfo.PropertyType;
 

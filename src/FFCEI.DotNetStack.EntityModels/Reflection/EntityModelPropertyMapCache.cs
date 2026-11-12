@@ -1,5 +1,5 @@
-using FFCEI.DotNetStack.Framework;
 using FFCEI.DotNetStack.EntityModels.Interfaces;
+using FFCEI.DotNetStack.Framework;
 
 namespace FFCEI.DotNetStack.EntityModels.Reflection;
 
@@ -17,8 +17,8 @@ internal sealed class EntityModelPropertyMapCache
     protected override bool IsValidKey(string key)
         => !string.IsNullOrEmpty(key);
 
-    public EntityModelPropertyMap GetOrAdd<TEntityModel>(TEntityModel model) where TEntityModel : class, IEntityModel
-        => GetOrAdd(model.GetType());
+    public EntityModelPropertyMap GetOrAdd<TEntityModel>(TEntityModel entityModel) where TEntityModel : class, IEntityModel
+        => GetOrAdd(entityModel.GetType());
 
     public EntityModelPropertyMap GetOrAdd(Type entityModelType)
     {

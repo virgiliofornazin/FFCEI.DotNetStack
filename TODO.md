@@ -5,6 +5,10 @@ https://github.com/ikyriak/IdempotentAPI Idempotency (check how to use, cache re
 
 Ver os frameworks da microsoft das extensions
 
+
+OpenTelemetry
+
+
 Acessibilidade
 
 AccessMonitor WCAG 2.1 pra validar

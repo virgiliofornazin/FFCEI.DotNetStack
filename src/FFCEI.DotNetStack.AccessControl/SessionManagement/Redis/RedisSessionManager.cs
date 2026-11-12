@@ -1,8 +1,8 @@
 using FFCEI.DotNetStack.AccessControl.Interfaces;
 using FFCEI.DotNetStack.AccessControl.SessionManagement.Common;
 using FFCEI.DotNetStack.Caching;
-using FFCEI.DotNetStack.Framework;
 using FFCEI.DotNetStack.EntityModels;
+using FFCEI.DotNetStack.Framework;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
@@ -358,7 +358,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             return 'OK'
         ");
 
-        session.TouchModelTimestamps();
+        session.GenerateEntityModelTimestamps();
 
         var luaScriptParameters = new LuaScriptParameters(session);
         var luaScriptResult = await redisDatabase.ScriptEvaluateAsync(luaScript, luaScriptParameters).ConfigureAwait(false);
@@ -408,7 +408,7 @@ public sealed class RedisSessionManager(string connectionString, ILogger logger)
             Attributes = ((attributes != null) && (attributes.Count > 0)) ? attributes.ToDictionary() : []
         };
 
-        newSession.GenerateModelAutomaticPropertiesForSave(DateTimeOffset.UtcNow);
+        newSession.GenerateEntityModelAutomaticPropertiesForSave();
 
         ValidatePolicies(newSession, newSession.DeviceIdentification, policies);
 

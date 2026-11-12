@@ -1,6 +1,6 @@
 namespace FFCEI.DotNetStack.EntityModels.Interfaces;
 
-public interface IDatabaseIdEntityModel
+public interface IDatabaseUniqueIdEntityModel
     : IEntityModel
 {
     long Id { get; set; }

@@ -1,5 +1,5 @@
-using FFCEI.DotNetStack.Framework;
 using FFCEI.DotNetStack.EntityModels.Interfaces;
+using FFCEI.DotNetStack.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -185,7 +185,7 @@ public sealed class LogicallyDeletableEntitiesForeignKeyDeleteBehaviourSaveChang
                             var property = navigationForeignKeyReference.ForeignKeyReference.EntityProperty;
                             property?.SetValue(detail, null);
 
-                            property = navigationForeignKeyReference.ForeignKeyReference.DatabaseIdProperty;
+                            property = navigationForeignKeyReference.ForeignKeyReference.DatabaseUniqueIdProperty;
                             property?.SetValue(detail, property.PropertyType.IsNullable() ? null : default(long));
 
                             property = navigationForeignKeyReference.ForeignKeyReference.UniversalUniqueIdProperty;

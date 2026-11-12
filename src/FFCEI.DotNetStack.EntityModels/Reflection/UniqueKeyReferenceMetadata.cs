@@ -6,7 +6,7 @@ namespace FFCEI.DotNetStack.EntityModels.Reflection;
 [DebuggerDisplay("UniqueKeyReference: [Properties: {Properties?.Count}]")]
 public class UniqueKeyReferenceMetadata
 {
-    internal UniqueKeyReferenceMetadata(IndexAttribute attribute, IReadOnlyCollection<ModelPropertyMetadata> properties)
+    internal UniqueKeyReferenceMetadata(IndexAttribute attribute, IReadOnlyCollection<EntityModelPropertyMetadata> properties)
     {
         ArgumentNullException.ThrowIfNull(attribute, nameof(attribute));
         ArgumentNullException.ThrowIfNull(properties, nameof(properties));

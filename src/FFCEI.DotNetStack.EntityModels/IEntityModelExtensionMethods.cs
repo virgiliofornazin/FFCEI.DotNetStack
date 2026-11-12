@@ -33,11 +33,11 @@ public static class IEntityModelExtensionMethods
             throw new InvalidOperationException("Source and destination must be assignable types.");
         }
 
-        if (source is IDatabaseIdEntityModel sourceId && destination is IDatabaseIdEntityModel destinationId)
+        if (source is IDatabaseUniqueIdEntityModel sourceId && destination is IDatabaseUniqueIdEntityModel destinationId)
         {
             destinationId.Id = sourceId.Id;
 
-            copyCallback?.Invoke(destination, source, nameof(IDatabaseIdEntityModel.Id), destinationId.Id);
+            copyCallback?.Invoke(destination, source, nameof(IDatabaseUniqueIdEntityModel.Id), destinationId.Id);
         }
 
         if (source is IUniversalUniqueIdEntityModel sourceExternalId && destination is IUniversalUniqueIdEntityModel destinationExternalId)
@@ -146,29 +146,23 @@ public static class IEntityModelExtensionMethods
         }
     }
 
-    public static void GenerateModelAutomaticPropertiesForSave(this IEntityModel entityModel, DateTimeOffset timestamp)
+    public static void GenerateEntityModelAutomaticPropertiesForSave(this IEntityModel entityModel, DateTimeOffset? timestamp = null)
     {
         if (entityModel is IUniversalUniqueIdEntityModel universalUniqueIdEntityModel)
         {
-            universalUniqueIdEntityModel.GenerateModelUniversalUniqueId();
+            universalUniqueIdEntityModel.GenerateEntityModelUniversalUniqueId();
         }
+
+        timestamp ??= DateTimeOffset.UtcNow;
 
         if (entityModel is ITimestampTrackedEntityModel timestampTrackedModel)
         {
-            timestampTrackedModel.TouchModelTimestamps(timestamp);
+            timestampTrackedModel.GenerateEntityModelTimestamps(timestamp);
         }
 
         if (entityModel is ILogicallyDeletableEntityModel logicallyDeletableEntityModel)
         {
-            if (logicallyDeletableEntityModel.IsLogicallyDeleted)
-            {
-                logicallyDeletableEntityModel.LogicallyDeletedTimestamp ??= timestamp;
-            }
-            else
-            {
-                logicallyDeletableEntityModel.LogicallyDeletedTimestamp = null;
-                logicallyDeletableEntityModel.WasLogicallyDeletedCascaded = false;
-            }
+            logicallyDeletableEntityModel.GenerateEntityModelLogicallyDeletedFlags(timestamp);
         }
     }
 }

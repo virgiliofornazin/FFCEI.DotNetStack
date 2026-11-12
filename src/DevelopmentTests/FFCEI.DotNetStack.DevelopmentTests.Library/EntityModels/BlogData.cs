@@ -7,7 +7,7 @@ namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 [Index(nameof(ExternalId), IsUnique = true)]
 [ForeignKeyReference(nameof(Blog), ReverseNavigationPropertyName = nameof(Blog.BlogData), DeleteBehavior = DeleteBehavior.Cascade)]
 public class BlogData
-   : DatabaseIdLogicallyDeletableTimestampTrackedEntityModel
+   : DatabaseUniqueIdLogicallyDeletableTimestampTrackedEntityModel
 #if TEST_EFCORE_USE_INTERFACES
     , IBlogData
 #endif

@@ -11,7 +11,7 @@ public static class IEntityModelExtensionMethods
     public static EntityModelPropertyMap GetEntityModelPropertyMap(this IEntityModel entity, DbContext context)
     {
         var entityType = context.ClrTypeOfEntityType(entity) ??
-            throw new InvalidOperationException($"Entity type '{entity.GetType().Name}' is not part of the DbContext model");
+            throw new InvalidOperationException($"Entity type '{entity.GetType().Name}' is not part of the DbContext known entity types");
 
         return EntityModelPropertyMapCache.Instance.GetOrAdd(entityType);
     }

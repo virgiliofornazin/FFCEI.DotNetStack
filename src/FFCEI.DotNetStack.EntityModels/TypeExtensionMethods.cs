@@ -9,7 +9,7 @@ public static class TypeExtensionMethods
     public static readonly Type[] AllEntityModelInterfaceTypes =
     [
         typeof(IEntityModel),
-        typeof(IDatabaseIdEntityModel),
+        typeof(IDatabaseUniqueIdEntityModel),
         typeof(IUniversalUniqueIdEntityModel),
         typeof(ILogicallyDeletableEntityModel),
         typeof(ITimestampTrackedEntityModel)
@@ -18,14 +18,14 @@ public static class TypeExtensionMethods
     public static readonly Type[] AllEntityModelImplementationTypes =
     [
         typeof(EntityModel),
-        typeof(DatabaseIdEntityModel),
-        typeof(DatabaseIdLogicallyDeletableEntityModel),
-        typeof(DatabaseIdLogicallyDeletableTimestampTrackedEntityModel),
-        typeof(DatabaseIdTimestampTrackedEntityModel),
-        typeof(DatabaseIdUniversalUniqueIdEntityModel),
-        typeof(DatabaseIdUniversalUniqueIdLogicallyDeletableEntityModel),
-        typeof(DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel),
-        typeof(DatabaseIdUniversalUniqueIdTimestampTrackedEntityModel),
+        typeof(DatabaseUniqueIdEntityModel),
+        typeof(DatabaseUniqueIdLogicallyDeletableEntityModel),
+        typeof(DatabaseUniqueIdLogicallyDeletableTimestampTrackedEntityModel),
+        typeof(DatabaseUniqueIdTimestampTrackedEntityModel),
+        typeof(DatabaseUniqueIdUniversalUniqueIdEntityModel),
+        typeof(DatabaseUniqueIdUniversalUniqueIdLogicallyDeletableEntityModel),
+        typeof(DatabaseUniqueIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel),
+        typeof(DatabaseUniqueIdUniversalUniqueIdTimestampTrackedEntityModel),
         typeof(UniversalUniqueIdEntityModel),
         typeof(UniversalUniqueIdLogicallyDeletableEntityModel),
         typeof(UniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel),

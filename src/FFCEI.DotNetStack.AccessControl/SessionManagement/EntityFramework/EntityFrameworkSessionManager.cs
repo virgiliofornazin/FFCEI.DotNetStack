@@ -1,11 +1,11 @@
 using FFCEI.DotNetStack.AccessControl.Interfaces;
 using FFCEI.DotNetStack.AccessControl.SessionManagement.Common;
+using FFCEI.DotNetStack.AccessControl.SessionManagement.EntityModels;
 using FFCEI.DotNetStack.EntityFramework;
-using FFCEI.DotNetStack.Framework;
 using FFCEI.DotNetStack.EntityModels;
+using FFCEI.DotNetStack.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using FFCEI.DotNetStack.AccessControl.SessionManagement.EntityModels;
 
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.EntityFramework;
 
@@ -14,23 +14,23 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    private static Session Map(SessionEntityModel model)
+    private static Session Map(SessionEntityModel sessionEntityModel)
     {
-        var deviceIdentification = model.DeviceIdentification;
-        var attributes = model.Attributes;
+        var deviceIdentification = sessionEntityModel.DeviceIdentification;
+        var attributes = sessionEntityModel.Attributes;
 
         var result = new Session()
         {
-            UniversalUniqueId = model.UniversalUniqueId,
-            TenantId = model.TenantId,
-            AccountId = model.AccountId,
-            Token = model.Token,
-            RefreshToken = model.RefreshToken,
-            ExpiresTimestamp = model.ExpiresTimestamp,
-            InactivityExpirationInterval = model.InactivityExpirationInterval,
-            FinalizedTimestamp = model.FinalizedTimestamp,
-            CreatedTimestamp = model.CreatedTimestamp,
-            UpdatedTimestamp = model.UpdatedTimestamp,
+            UniversalUniqueId = sessionEntityModel.UniversalUniqueId,
+            TenantId = sessionEntityModel.TenantId,
+            AccountId = sessionEntityModel.AccountId,
+            Token = sessionEntityModel.Token,
+            RefreshToken = sessionEntityModel.RefreshToken,
+            ExpiresTimestamp = sessionEntityModel.ExpiresTimestamp,
+            InactivityExpirationInterval = sessionEntityModel.InactivityExpirationInterval,
+            FinalizedTimestamp = sessionEntityModel.FinalizedTimestamp,
+            CreatedTimestamp = sessionEntityModel.CreatedTimestamp,
+            UpdatedTimestamp = sessionEntityModel.UpdatedTimestamp,
             Attributes = attributes.ToDictionary(attribute => attribute.AttributeName, item => item.AttributeValue)
         };
 
@@ -245,7 +245,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
             ExpiresTimestamp = expiresTimestamp,
         };
 
-        newSession.GenerateModelAutomaticPropertiesForSave(DateTimeOffset.UtcNow);
+        newSession.GenerateEntityModelAutomaticPropertiesForSave();
 
         ValidatePolicies(newSession, newSession.DeviceIdentification, policies);
 

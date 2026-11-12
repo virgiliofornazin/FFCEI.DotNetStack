@@ -3,7 +3,7 @@ using FFCEI.DotNetStack.EntityModels.Interfaces;
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 
 public interface IBlogData
-   : IDatabaseIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
+   : IDatabaseUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
     string ExternalId { get; }
     string DataText { get; }

@@ -34,9 +34,9 @@ public static class EntityEntryExtensionMethods
         ArgumentNullException.ThrowIfNull(entityEntry, nameof(entityEntry));
         ArgumentNullException.ThrowIfNull(entityModel, nameof(entityModel));
 
-        if (entityModel is IDatabaseIdEntityModel databaseIdEntityModel)
+        if (entityModel is IDatabaseUniqueIdEntityModel databaseUniqueIdEntityModel)
         {
-            entityEntry.Property(nameof(IDatabaseIdEntityModel.Id)).CurrentValue = databaseIdEntityModel.Id;
+            entityEntry.Property(nameof(IDatabaseUniqueIdEntityModel.Id)).CurrentValue = databaseUniqueIdEntityModel.Id;
         }
 
         if (entityModel is IUniversalUniqueIdEntityModel universalUniqueIdEntityModel)
@@ -51,7 +51,7 @@ public static class EntityEntryExtensionMethods
         Action<IEntityModel, EntityEntry, IEntityModel, string, object?>? copyCallback = null)
     {
         var property = destinationEntry.Properties.FirstOrDefault(property => property.Metadata.Name == propertyName)
-            ?? throw new InvalidOperationException($"Property '{propertyName}' was not found among the model {destinationEntry.Entity.GetType().Name} tracked entry properties.");
+            ?? throw new InvalidOperationException($"Property '{propertyName}' was not found among the entity type {destinationEntry.Entity.GetType().Name} tracked entry properties.");
 
         property.IsModified = true;
         property.CurrentValue = propertyValue;

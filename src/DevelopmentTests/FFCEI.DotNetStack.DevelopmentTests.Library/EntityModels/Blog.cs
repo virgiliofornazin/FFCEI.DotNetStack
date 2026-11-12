@@ -8,7 +8,7 @@ namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 [Index(nameof(Name), IsUnique = true)]
 [Index(nameof(Url), nameof(Id), IsUnique = false, IsDescending = [false, true])]
 public class Blog
-   : DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
+   : DatabaseUniqueIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
 #if TEST_EFCORE_USE_INTERFACES
     , IBlog
 #endif

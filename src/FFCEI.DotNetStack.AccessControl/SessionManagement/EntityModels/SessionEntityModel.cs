@@ -7,7 +7,7 @@ namespace FFCEI.DotNetStack.AccessControl.SessionManagement.EntityModels;
 
 [Index(nameof(TenantId), nameof(Token), IsUnique = true)]
 public class SessionEntityModel
-    : DatabaseIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel, ISessionExpiration
+    : DatabaseUniqueIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel, ISessionExpiration
 {
     public required string TenantId { get; set; }
     public required string AccountId { get; set; }

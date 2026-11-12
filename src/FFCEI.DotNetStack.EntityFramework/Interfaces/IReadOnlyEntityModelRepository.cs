@@ -1,3 +1,4 @@
+
 using FFCEI.DotNetStack.EntityModels.Interfaces;
 
 namespace FFCEI.DotNetStack.EntityFramework.Interfaces;

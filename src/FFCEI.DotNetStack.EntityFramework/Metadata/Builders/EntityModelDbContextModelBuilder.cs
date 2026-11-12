@@ -142,9 +142,9 @@ public static class EntityModelDbContextModelBuilder
             EntityFrameworkLog.MappedTable(logger, entityTypeModelImplementationType.Name, objectName);
         }
 
-        if (entityTypeModelImplementationType.Implements<IDatabaseIdEntityModel>())
+        if (entityTypeModelImplementationType.Implements<IDatabaseUniqueIdEntityModel>())
         {
-            var idProperty = entity.Property(nameof(IDatabaseIdEntityModel.Id));
+            var idProperty = entity.Property(nameof(IDatabaseUniqueIdEntityModel.Id));
 
             if (!isView)
             {
@@ -152,7 +152,7 @@ public static class EntityModelDbContextModelBuilder
                     .IsRequired(true)
                     .ValueGeneratedOnAdd();
 
-                _ = entity.HasKey(nameof(IDatabaseIdEntityModel.Id))
+                _ = entity.HasKey(nameof(IDatabaseUniqueIdEntityModel.Id))
                     .HasName($"{objectName}_PK");
 
                 hasKey = true;
@@ -282,7 +282,7 @@ public static class EntityModelDbContextModelBuilder
         var foreignKeyEntityPropertyName = foreignKeyEntityProperty.Name;
         var foreignKeyIdPropertyName = foreignKeyReference.IdPropertyName ?? string.Empty;
         var foreignKeyIdProperty = entityModelPropertyMap.Properties.FirstOrDefault(p => p.Name == foreignKeyIdPropertyName);
-        var entityModelIdPropertyName = $"{foreignKeyEntityPropertyName}{nameof(IDatabaseIdEntityModel.Id)}";
+        var entityModelIdPropertyName = $"{foreignKeyEntityPropertyName}{nameof(IDatabaseUniqueIdEntityModel.Id)}";
         var entityModelIdProperty = entityModelPropertyMap.Properties.FirstOrDefault(p => p.Name == entityModelIdPropertyName);
         var entityModelUniversalUniqueIdPropertyName = $"{foreignKeyEntityPropertyName}{nameof(IUniversalUniqueIdEntityModel.UniversalUniqueId)}";
         var entityModelUniversalUniqueIdProperty = entityModelPropertyMap.Properties.FirstOrDefault(p => p.Name == entityModelUniversalUniqueIdPropertyName);

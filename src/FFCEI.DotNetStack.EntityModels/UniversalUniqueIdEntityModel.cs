@@ -5,5 +5,5 @@ namespace FFCEI.DotNetStack.EntityModels;
 public abstract class UniversalUniqueIdEntityModel
     : EntityModel, IUniversalUniqueIdEntityModel
 {
-    public Guid UniversalUniqueId { get; set; } = Guid.CreateVersion7();
+    public Guid UniversalUniqueId { get; set; } = IUniversalUniqueIdEntityModelExtensionMethods.GenerateModelUniversalUniqueId();
 }

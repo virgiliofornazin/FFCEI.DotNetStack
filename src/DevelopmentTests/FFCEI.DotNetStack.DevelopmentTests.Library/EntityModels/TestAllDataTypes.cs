@@ -2,10 +2,10 @@ using FFCEI.DotNetStack.EntityModels;
 
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 
-public class TestModel
+public class TestAllDataTypes
     : DatabaseUniqueIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel
 #if TEST_EFCORE_USE_INTERFACES
-    , ITestModel
+    , ITestAllDataTypes
 #endif
 {
     public bool BoolProperty { get; set; }

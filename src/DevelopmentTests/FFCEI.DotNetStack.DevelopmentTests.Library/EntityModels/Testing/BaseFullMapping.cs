@@ -2,7 +2,7 @@ using FFCEI.DotNetStack.EntityFramework.Attributes;
 using FFCEI.DotNetStack.EntityFramework.Storage.MappingTypes;
 using FFCEI.DotNetStack.EntityModels;
 
-namespace FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
+namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels.Testing;
 
 public abstract class BaseFullMapping
     : DatabaseUniqueIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel, IFullMapping

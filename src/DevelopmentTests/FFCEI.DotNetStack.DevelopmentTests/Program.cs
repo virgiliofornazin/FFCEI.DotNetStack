@@ -4,19 +4,19 @@
 using FFCEI.DotNetStack.Compliance;
 using FFCEI.DotNetStack.Configuration;
 using FFCEI.DotNetStack.DevelopmentTests.Library.EntityFramework;
+using FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
+using FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels.Testing;
 using FFCEI.DotNetStack.DevelopmentTests.Library.MessageBroker;
 using FFCEI.DotNetStack.DevelopmentTests.Library.MessageHandlers;
-using FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
-using FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
 using FFCEI.DotNetStack.EntityFramework;
 using FFCEI.DotNetStack.EntityFramework.Configurations;
 using FFCEI.DotNetStack.EntityFramework.Storage.MappingTypes.Rules;
+using FFCEI.DotNetStack.EntityModels;
 using FFCEI.DotNetStack.Framework;
 using FFCEI.DotNetStack.Logging;
 using FFCEI.DotNetStack.Logging.Configurations;
 using FFCEI.DotNetStack.MessageBroker;
 using FFCEI.DotNetStack.MessageBroker.Interfaces;
-using FFCEI.DotNetStack.EntityModels;
 using FFCEI.DotNetStack.Secrets;
 using FFCEI.DotNetStack.Serialization;
 using FFCEI.DotNetStack.WebApi;
@@ -249,7 +249,7 @@ internal sealed class Program
 #endif
 
             var blogObj = new Blog { Name = "Tech Tips", Url = "http://techtips.com" };
-            var blogRow = new BlogRow() { Blog = blogObj, LineText = "Welcome to Tech Tips!" };
+            var blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Tech Tips!" };
 
 #if TEST_MESSAGE_BROKER
             {
@@ -313,13 +313,13 @@ internal sealed class Program
 
             await repository.Blogs.AddNewAsync(blogObj, saveChanges: false);
 
-            blogRow = new BlogRow() { Blog = blogObj, LineText = "Welcome to Coding Daily!" };
+            blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily!" };
 
             await repository.BlogRows.AddNewAsync(blogRow, saveChanges: false);
 
             _ = await repository.SaveChangesAsync(acceptAllChangesOnSuccess: true);
 
-            var blogRow2 = new BlogRow() { LineText = "Welcome to Coding Daily 2!" };
+            var blogRow2 = new BlogRow { LineText = "Welcome to Coding Daily 2!" };
 
             await repository.BlogRows.AddNewAsync(blogRow2, saveChanges: true);
 
@@ -327,13 +327,13 @@ internal sealed class Program
 
             await repository.Blogs.AddNewAsync(blogObj);
 
-            blogRow = new BlogRow() { Blog = blogObj, LineText = "Welcome to Coding Daily 3!", LineRow = 1 };
+            blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily 3!", LineRow = 1 };
 
             await repository.BlogRows.AddNewAsync(blogRow);
 
             var blogRowR1 = blogRow;
 
-            blogRow = new BlogRow() { Blog = blogObj, LineText = "Welcome to Coding Daily 4!", LineRow = 2 };
+            blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily 4!", LineRow = 2 };
 
             await repository.BlogRows.AddNewAsync(blogRow);
 
@@ -341,7 +341,7 @@ internal sealed class Program
 
             await repository.BlogRows.DeleteExistingAsync(blogRowR1);
 
-            blogRow = new BlogRow() { Blog = blogObj, LineText = "Welcome to Coding Daily 3!", LineRow = 1 };
+            blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily 3!", LineRow = 1 };
 
             await repository.BlogRows.AddNewAsync(blogRow, false);
 
@@ -394,7 +394,7 @@ internal sealed class Program
             await repository.Blogs.PhysicallyDeleteExistingAsync(blogObjCopy);
 #endif
 
-            var test = new TestModel()
+            var test = new TestAllDataTypes()
             {
                 BoolProperty = true,
                 Int8Property = (sbyte)FullMappingExtensionMethods.NextRandom(),
@@ -423,7 +423,7 @@ internal sealed class Program
             await repository.TestModels.AddNewAsync(test);
 #endif
 
-            var ntest = new NullableTestModel();
+            var ntest = new NullableTestAllDataTypes();
 #if TEST_EFCORE
             await repository.NullableTestModels.AddNewAsync(ntest);
 #endif
@@ -494,7 +494,7 @@ internal sealed class Program
 
             tests ??=
 #endif
-                new List<ITestModel> { test };
+                new List<ITestAllDataTypes> { test };
 
             Console.WriteLine("");
 
@@ -511,7 +511,7 @@ internal sealed class Program
 
             ntests ??=
 #endif
-                new List<INullableTestModel> { ntest };
+                new List<INullableTestAllDataTypes> { ntest };
 
             Console.WriteLine("");
 

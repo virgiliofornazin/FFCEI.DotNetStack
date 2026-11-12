@@ -1,5 +1,5 @@
 using FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
-using FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
+using FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels.Testing;
 using FFCEI.DotNetStack.EntityFramework;
 using FFCEI.DotNetStack.EntityFramework.Interfaces.Generic;
 
@@ -19,8 +19,8 @@ public class BloggingEntityModelRepositoryContainer(BloggingContext context)
     public IEntityModelRepository<IBlog> Blogs => Repository<Blog, IBlog>(ref field);
     public IEntityModelRepository<IBlogRow> BlogRows => Repository<BlogRow, IBlogRow>(ref field);
     public IEntityModelRepository<IBlogData> BlogDatas => Repository<BlogData, IBlogData>(ref field);
-    public IEntityModelRepository<ITestModel> TestModels => Repository<TestModel, ITestModel>(ref field);
-    public IEntityModelRepository<INullableTestModel> NullableTestModels => Repository<NullableTestModel, INullableTestModel>(ref field);
+    public IEntityModelRepository<ITestAllDataTypes> TestModels => Repository<TestAllDataTypes, ITestAllDataTypes>(ref field);
+    public IEntityModelRepository<INullableTestAllDataTypes> NullableTestModels => Repository<NullableTestAllDataTypes, INullableTestAllDataTypes>(ref field);
 #else
     public IEntityModelRepository<TestModel> TestModels => Repository(ref field);
     public IEntityModelRepository<NullableTestModel> NullableTestModels => Repository(ref field);

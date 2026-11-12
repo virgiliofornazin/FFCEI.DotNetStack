@@ -2,7 +2,7 @@ using FFCEI.DotNetStack.EntityModels.Interfaces;
 
 namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels;
 
-public interface INullableTestModel
+public interface INullableTestAllDataTypes
     : IDatabaseUniqueIdEntityModel, IUniversalUniqueIdEntityModel, ILogicallyDeletableEntityModel, ITimestampTrackedEntityModel
 {
     bool? BoolProperty { get; set; }

@@ -10,6 +10,6 @@ public interface IBloggingEntityModelRepositoryContainer
     IEntityModelRepository<IBlog> Blogs { get; }
     IEntityModelRepository<IBlogRow> BlogRows { get; }
     IEntityModelRepository<IBlogData> BlogDatas { get; }
-    IEntityModelRepository<ITestModel> TestModels { get; }
-    IEntityModelRepository<INullableTestModel> NullableTestModels { get; }
+    IEntityModelRepository<ITestAllDataTypes> TestModels { get; }
+    IEntityModelRepository<INullableTestAllDataTypes> NullableTestModels { get; }
 }

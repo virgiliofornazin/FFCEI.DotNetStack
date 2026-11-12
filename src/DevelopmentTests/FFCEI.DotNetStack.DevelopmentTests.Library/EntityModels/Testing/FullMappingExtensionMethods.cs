@@ -1,7 +1,7 @@
 using FFCEI.DotNetStack.Framework;
 using System.Text;
 
-namespace FFCEI.DotNetStack.DevelopmentTests.Library.TestModels;
+namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityModels.Testing;
 
 public static class FullMappingExtensionMethods
 {

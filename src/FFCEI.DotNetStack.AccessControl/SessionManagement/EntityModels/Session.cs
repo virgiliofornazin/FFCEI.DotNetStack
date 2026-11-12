@@ -6,9 +6,7 @@ using System.Collections.ObjectModel;
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.EntityModels;
 
 [Index(nameof(TenantId), nameof(Token), IsUnique = true)]
-#pragma warning disable CA1724 // Type names should not match namespaces
 public class Session
-#pragma warning restore CA1724 // Type names should not match namespaces
     : DatabaseUniqueIdUniversalUniqueIdLogicallyDeletableTimestampTrackedEntityModel, ISessionExpiration
 {
     public required string TenantId { get; set; }

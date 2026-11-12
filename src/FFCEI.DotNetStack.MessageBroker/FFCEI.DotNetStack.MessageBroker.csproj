@@ -2,8 +2,8 @@
 
   <ItemGroup>
     <PackageReference Include="Apache.Qpid.Proton.Client" Version="1.1.0" PrivateAssets="compile" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.100.20" PrivateAssets="compile" />
-    <PackageReference Include="AWSSDK.SQS" Version="4.0.100.19" PrivateAssets="compile" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.1.0" PrivateAssets="compile" />
+    <PackageReference Include="AWSSDK.SQS" Version="4.1.0" PrivateAssets="compile" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.21.0" PrivateAssets="compile" />
     <PackageReference Include="Confluent.Kafka" Version="2.16.0" PrivateAssets="compile" />
     <PackageReference Include="Google.Cloud.PubSub.V1" Version="3.39.0" PrivateAssets="compile" />

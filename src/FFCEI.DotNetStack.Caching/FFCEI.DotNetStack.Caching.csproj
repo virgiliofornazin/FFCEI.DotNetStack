@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.13" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" PrivateAssets="compile" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.13" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.15" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.15" PrivateAssets="compile" />
     <PackageReference Include="StackExchange.Redis" Version="3.4.35" />
     <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.9.0" />
     <PackageReference Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" Version="2.9.0" PrivateAssets="compile" />

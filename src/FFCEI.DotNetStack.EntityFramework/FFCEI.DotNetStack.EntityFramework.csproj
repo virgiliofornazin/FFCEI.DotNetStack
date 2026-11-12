@@ -6,11 +6,11 @@
     <PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Keys" Version="1.6.4" PrivateAssets="compile" />
     <PackageReference Include="Azure.Identity" Version="1.21.0" PrivateAssets="compile" />
     <PackageReference Include="EFCoreSecondLevelCacheInterceptor" Version="5.5.2" />
-    <PackageReference Include="EFCoreSecondLevelCacheInterceptor.FusionCache" Version="5.5.2" PrivateAssets="compile" />
+    <PackageReference Include="EFCoreSecondLevelCacheInterceptor.FusionCache" Version="5.5.2" />
     <PackageReference Include="Google.Cloud.AspNetCore.DataProtection.Kms" Version="1.0.0-alpha04" PrivateAssets="compile" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.13" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="10.0.13" PrivateAssets="compile" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.13" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="10.0.13" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.DynamicLinq" Version="10.7.4" />

@@ -3,10 +3,10 @@ using FFCEI.DotNetStack.EntityModels;
 
 namespace FFCEI.DotNetStack.AccessControl.SessionManagement.EntityModels;
 
-public class DeviceIdentificationEntityModel
+public class DeviceIdentification
     : DatabaseUniqueIdEntityModel, IDeviceIdentification
 {
-    public DeviceIdentificationEntityModel(IDeviceIdentification? deviceIdentification)
+    public DeviceIdentification(IDeviceIdentification? deviceIdentification)
     {
         if (deviceIdentification != null)
         {

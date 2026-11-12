@@ -14,12 +14,12 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    private static Session Map(SessionEntityModel sessionEntityModel)
+    private static Common.Session Map(EntityModels.Session sessionEntityModel)
     {
         var deviceIdentification = sessionEntityModel.DeviceIdentification;
         var attributes = sessionEntityModel.Attributes;
 
-        var result = new Session()
+        var result = new Common.Session()
         {
             UniversalUniqueId = sessionEntityModel.UniversalUniqueId,
             TenantId = sessionEntityModel.TenantId,
@@ -61,7 +61,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId, nameof(accountId));
         ArgumentNullException.ThrowIfNull(policies, nameof(policies));
 
-        List<SessionEntityModel> sessions = [];
+        List<EntityModels.Session> sessions = [];
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
@@ -132,7 +132,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         _ = await scopeAndService.RequiredService.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ExpireSessionsInDatabase(List<SessionEntityModel> sessions,
+    private static async Task ExpireSessionsInDatabase(List<EntityModels.Session> sessions,
         ScopeAndServiceResult<SessionManagerEntityModelRepositoryContainer> scopeAndService,
         long maximumSessions, CancellationToken cancellationToken)
     {
@@ -234,7 +234,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
             throw new InvalidOperationException($"Duplicated token {token}");
         }
 
-        var newSession = new SessionEntityModel()
+        var newSession = new EntityModels.Session()
         {
             TenantId = tenantId,
             AccountId = accountId,
@@ -253,7 +253,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         {
             foreach (var attribute in attributes)
             {
-                var mappedAttribute = new SessionAttributeEntityModel()
+                var mappedAttribute = new SessionAttribute()
                 {
                     Session = newSession,
                     AttributeName = attribute.Key,

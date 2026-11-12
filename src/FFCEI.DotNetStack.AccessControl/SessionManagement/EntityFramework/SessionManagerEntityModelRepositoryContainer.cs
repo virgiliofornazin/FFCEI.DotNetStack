@@ -7,7 +7,7 @@ namespace FFCEI.DotNetStack.AccessControl.SessionManagement.EntityFramework;
 public sealed class SessionManagerEntityModelRepositoryContainer(SessionManagerDbContext dbContext)
     : EntityModelRepositoryContainer(dbContext)
 {
-    public IEntityModelRepository<SessionEntityModel> Sessions => Repository(ref field);
-    public IEntityModelRepository<SessionAttributeEntityModel> SessionAttributes => Repository(ref field);
-    public IEntityModelRepository<DeviceIdentificationEntityModel> DeviceIdentifications => Repository(ref field);
+    public IEntityModelRepository<Session> Sessions => Repository(ref field);
+    public IEntityModelRepository<SessionAttribute> SessionAttributes => Repository(ref field);
+    public IEntityModelRepository<DeviceIdentification> DeviceIdentifications => Repository(ref field);
 }

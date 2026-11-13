@@ -1,8 +1,8 @@
 using FFCEI.DotNetStack.EntityFramework.Metadata.Conventions;
-using FFCEI.DotNetStack.Framework;
 using FFCEI.DotNetStack.EntityModels;
 using FFCEI.DotNetStack.EntityModels.Interfaces;
 using FFCEI.DotNetStack.EntityModels.Reflection;
+using FFCEI.DotNetStack.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -379,7 +379,7 @@ public sealed class RecoverLogicallyDeletableEntitiesSaveChangesInterceptor
 
         var keyProperties = context.Model.FindEntityType(entityType)!.FindPrimaryKey()!.Properties;
 
-        if (keyProperties != null && keyProperties.Any())
+        if ((keyProperties != null) && (keyProperties.Count != 0))
         {
             var keyValues = keyProperties.Select(p => p.PropertyInfo!.GetValue(existingEntity)).ToArray();
 

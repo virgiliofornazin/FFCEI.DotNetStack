@@ -49,6 +49,16 @@ public static class JsonDefaults
     {
         options.Converters.Add(new JsonStringToEnumConverterFactory());
         options.Converters.Add(new JsonStringToDecimalConverterFactory());
+
+        // TODO: FIX in .NET 11
+        if (typeof(JsonStringToDecimalConverterFactory).BaseType !=
+            typeof(JsonStringToDecimal128ConverterFactory).BaseType)
+        {
+            options.Converters.Add(new JsonStringToDecimal32ConverterFactory());
+            options.Converters.Add(new JsonStringToDecimal64ConverterFactory());
+            options.Converters.Add(new JsonStringToDecimal128ConverterFactory());
+        }
+
         options.Converters.Add(new JsonStringToDoubleConverterFactory());
         options.Converters.Add(new JsonStringToFloatConverterFactory());
         options.Converters.Add(new JsonStringToHalfConverterFactory());

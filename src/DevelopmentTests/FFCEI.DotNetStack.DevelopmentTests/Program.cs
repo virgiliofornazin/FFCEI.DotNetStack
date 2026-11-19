@@ -201,16 +201,16 @@ internal sealed class Program
 #if TEST_EFCORE_MAPPINGS
             {
 #if TEST_EFCORE
-                var fullMappingQueried = await repository.FullMappingModels.AsNoTracking().FirstOrDefaultAsync();
+                var fullMappingQueried = await repository.FullMappingEntities.AsNoTracking().FirstOrDefaultAsync();
 #endif
                 var fullMappingAdded = new FullMapping();
 
                 fullMappingAdded.Fill();
 
 #if TEST_EFCORE
-                await repository.FullMappingModels.AddNewAsync(fullMappingAdded);
+                await repository.FullMappingEntities.AddNewAsync(fullMappingAdded);
 
-                fullMappingQueried = await repository.FullMappingModels.AsNoTracking().FirstAsync();
+                fullMappingQueried = await repository.FullMappingEntities.AsNoTracking().FirstAsync();
 #else
         var fullMappingQueried = fullMappingAdded;
 #endif
@@ -222,7 +222,7 @@ internal sealed class Program
 #if TEST_EFCORE
                 try
                 {
-                    var fullMappingViewQueried = await repository.FullMappingViewModels.FirstOrDefaultAsync();
+                    var fullMappingViewQueried = await repository.FullMappingViewEntities.FirstOrDefaultAsync();
 
                     Console.WriteLine($"View: {JsonSerializer.FormattedForScreenInstance.SerializedToString(fullMappingViewQueried)}");
                 }
@@ -290,8 +290,8 @@ internal sealed class Program
 #endif
 
 #if TEST_EFCORE
-            await repository.Blogs.AddNewAsync(blogObj, saveChanges: false);
-            await repository.BlogRows.AddNewAsync(blogRow, saveChanges: true);
+            await repository.BlogEntities.AddNewAsync(blogObj, saveChanges: false);
+            await repository.BlogRowEntities.AddNewAsync(blogRow, saveChanges: true);
 
             var blogRowCopy1 = new BlogRow();
 
@@ -311,45 +311,45 @@ internal sealed class Program
 
             blogObj = new Blog { Name = "Coding Daily", Url = "http://codingdaily.com" };
 
-            await repository.Blogs.AddNewAsync(blogObj, saveChanges: false);
+            await repository.BlogEntities.AddNewAsync(blogObj, saveChanges: false);
 
             blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily!" };
 
-            await repository.BlogRows.AddNewAsync(blogRow, saveChanges: false);
+            await repository.BlogRowEntities.AddNewAsync(blogRow, saveChanges: false);
 
             _ = await repository.SaveChangesAsync(acceptAllChangesOnSuccess: true);
 
             var blogRow2 = new BlogRow { LineText = "Welcome to Coding Daily 2!" };
 
-            await repository.BlogRows.AddNewAsync(blogRow2, saveChanges: true);
+            await repository.BlogRowEntities.AddNewAsync(blogRow2, saveChanges: true);
 
             blogObj = new Blog { Name = "Coding Daily 3", Url = "http://codingdaily.com" };
 
-            await repository.Blogs.AddNewAsync(blogObj);
+            await repository.BlogEntities.AddNewAsync(blogObj);
 
             blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily 3!", LineRow = 1 };
 
-            await repository.BlogRows.AddNewAsync(blogRow);
+            await repository.BlogRowEntities.AddNewAsync(blogRow);
 
             var blogRowR1 = blogRow;
 
             blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily 4!", LineRow = 2 };
 
-            await repository.BlogRows.AddNewAsync(blogRow);
+            await repository.BlogRowEntities.AddNewAsync(blogRow);
 
             var blogRowR2 = blogRow;
 
-            await repository.BlogRows.DeleteExistingAsync(blogRowR1);
+            await repository.BlogRowEntities.DeleteExistingAsync(blogRowR1);
 
             blogRow = new BlogRow { Blog = blogObj, LineText = "Welcome to Coding Daily 3!", LineRow = 1 };
 
-            await repository.BlogRows.AddNewAsync(blogRow, false);
+            await repository.BlogRowEntities.AddNewAsync(blogRow, false);
 
             /*
             await repository.BlogRows.SaveChangesAsync();
             */
 
-            _ = repository.BlogRows.SaveChanges();
+            _ = repository.BlogRowEntities.SaveChanges();
 
             /*
             blogRow = await repository.BlogRows.FindExistingByUniqueKeyAsync(blogRow) as BlogRow;
@@ -357,23 +357,23 @@ internal sealed class Program
 
             blogRow.BlogId = 1;
 
-            await repository.BlogRows.UpdateExistingAsync(blogRow);
+            await repository.BlogRowEntities.UpdateExistingAsync(blogRow);
 
             blogRow.BlogId = 2;
 
-            await repository.BlogRows.UpdateExistingAsync(blogRow);
+            await repository.BlogRowEntities.UpdateExistingAsync(blogRow);
 
             blogRow.Blog = blogObj;
 
-            await repository.BlogRows.UpdateExistingAsync(blogRow);
+            await repository.BlogRowEntities.UpdateExistingAsync(blogRow);
 
-            await repository.Blogs.ReloadExistingAsync(blogObj);
+            await repository.BlogEntities.ReloadExistingAsync(blogObj);
 
             _ = blogObj.BlogRows;
 
-            await repository.Blogs.DeleteExistingAsync(blogObj);
-            await repository.Blogs.LogicallyUndeleteExistingAsync(blogObj);
-            await repository.Blogs.DeleteExistingAsync(blogObj);
+            await repository.BlogEntities.DeleteExistingAsync(blogObj);
+            await repository.BlogEntities.LogicallyUndeleteExistingAsync(blogObj);
+            await repository.BlogEntities.DeleteExistingAsync(blogObj);
 
             var blogObjCopy = new Blog();
 
@@ -388,10 +388,10 @@ internal sealed class Program
                 blogObjCopy.BlogRows.Add(blogRowCopy);
             }
 
-            await repository.Blogs.AddNewAsync(blogObjCopy);
+            await repository.BlogEntities.AddNewAsync(blogObjCopy);
 
-            await repository.Blogs.LogicallyDeleteExistingAsync(blogObjCopy);
-            await repository.Blogs.PhysicallyDeleteExistingAsync(blogObjCopy);
+            await repository.BlogEntities.LogicallyDeleteExistingAsync(blogObjCopy);
+            await repository.BlogEntities.PhysicallyDeleteExistingAsync(blogObjCopy);
 #endif
 
             var test = new TestAllDataTypes()
@@ -420,18 +420,18 @@ internal sealed class Program
             };
 
 #if TEST_EFCORE
-            await repository.TestModels.AddNewAsync(test);
+            await repository.TestAllDataTypesEntities.AddNewAsync(test);
 #endif
 
             var ntest = new NullableTestAllDataTypes();
 #if TEST_EFCORE
-            await repository.NullableTestModels.AddNewAsync(ntest);
+            await repository.NullableTestAllDataTypeEntities.AddNewAsync(ntest);
 #endif
 
             var likeString = "i";
             var myBlogs =
 #if TEST_EFCORE
-                await repository.Blogs.AsNoTracking().Include(b => b.BlogRows).Where(b => b.Name.Contains(likeString)).ToListAsync();
+                await repository.BlogEntities.AsNoTracking().Include(b => b.BlogRows).Where(b => b.Name.Contains(likeString)).ToListAsync();
 
             myBlogs ??=
 #endif
@@ -448,7 +448,7 @@ internal sealed class Program
 
             var myBlogRows =
 #if TEST_EFCORE
-                await repository.BlogRows.AsNoTracking().ToListAsync();
+                await repository.BlogRowEntities.AsNoTracking().ToListAsync();
 
             myBlogRows ??=
 #endif
@@ -465,7 +465,7 @@ internal sealed class Program
             }
 
 #if TEST_EFCORE
-            myBlogRows = await repository.BlogRows.ToListAsync();
+            myBlogRows = await repository.BlogRowEntities.ToListAsync();
 
             Console.WriteLine("");
 
@@ -476,7 +476,7 @@ internal sealed class Program
                 Console.WriteLine("");
             }
 
-            myBlogRows = await repository.BlogRows.Include(br => br.Blog).ToListAsync();
+            myBlogRows = await repository.BlogRowEntities.Include(br => br.Blog).ToListAsync();
 
             Console.WriteLine("");
 
@@ -490,7 +490,7 @@ internal sealed class Program
 
             var tests =
 #if TEST_EFCORE
-                await repository.TestModels.AsNoTracking().ToListAsync();
+                await repository.TestAllDataTypesEntities.AsNoTracking().ToListAsync();
 
             tests ??=
 #endif
@@ -507,7 +507,7 @@ internal sealed class Program
 
             var ntests =
 #if TEST_EFCORE
-                await repository.NullableTestModels.AsNoTracking().ToListAsync();
+                await repository.NullableTestAllDataTypeEntities.AsNoTracking().ToListAsync();
 
             ntests ??=
 #endif
@@ -523,7 +523,7 @@ internal sealed class Program
             }
 
 #if TEST_EFCORE
-            myBlogRows = await repository.BlogRows.AsNoTracking().Include(br => br.Blog).Where(br => br.BlogId == 1).ToListAsync();
+            myBlogRows = await repository.BlogRowEntities.AsNoTracking().Include(br => br.Blog).Where(br => br.BlogId == 1).ToListAsync();
 
             Console.WriteLine("");
 
@@ -534,7 +534,7 @@ internal sealed class Program
                 Console.WriteLine("");
             }
 
-            myBlogRows = await repository.BlogRows.AsNoTracking().Where(br => br.BlogId == 1).ToListAsync();
+            myBlogRows = await repository.BlogRowEntities.AsNoTracking().Where(br => br.BlogId == 1).ToListAsync();
 
             Console.WriteLine("");
 

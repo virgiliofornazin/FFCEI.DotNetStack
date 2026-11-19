@@ -70,7 +70,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
             (policy.MaximumSessions != null) &&
             (policy.MaximumSessions > 0)))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
+            sessions = await scopeAndService.RequiredService.SessionEntities
                 .Include(session => session.DeviceIdentification)
                 .Where(session => session.TenantId == tenantId && session.AccountId == accountId &&
                     session.DeviceIdentification != null && session.DeviceIdentification.DeviceType == deviceIdentificationType)
@@ -83,7 +83,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         else if ((policies.MaximumSessionsPerAccountDevice != null) &&
                 (policies.MaximumSessionsPerAccountDevice > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
+            sessions = await scopeAndService.RequiredService.SessionEntities
                 .Include(session => session.DeviceIdentification)
                 .Where(session => session.TenantId == tenantId && session.AccountId == accountId &&
                     session.DeviceIdentification != null && session.DeviceIdentification.DeviceType == deviceIdentificationType)
@@ -97,7 +97,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         if ((policies.MaximumSessionsPerAccount != null) &&
             (policies.MaximumSessionsPerAccount > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
+            sessions = await scopeAndService.RequiredService.SessionEntities
                 .Where(session => session.TenantId == tenantId && session.AccountId == accountId)
                 .OrderBy(session => session.CreatedTimestamp)
                 .ToListAsync(cancellationToken)
@@ -109,7 +109,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         if ((policies.MaximumSessionsPerTenant != null) &&
             (policies.MaximumSessionsPerTenant > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
+            sessions = await scopeAndService.RequiredService.SessionEntities
                 .Where(session => session.TenantId == tenantId)
                 .OrderBy(session => session.CreatedTimestamp)
                 .ToListAsync(cancellationToken)
@@ -121,7 +121,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
         if ((policies.MaximumSessions != null) &&
             (policies.MaximumSessions > 0))
         {
-            sessions = await scopeAndService.RequiredService.Sessions
+            sessions = await scopeAndService.RequiredService.SessionEntities
                 .OrderBy(session => session.CreatedTimestamp)
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -145,7 +145,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
                 var take = expired > int.MaxValue ? int.MaxValue : expired;
                 var expiredSessions = sessions.Take((int)take);
 
-                await scopeAndService.RequiredService.Sessions.DeleteManyExistingAsync(expiredSessions, saveChanges: false,
+                await scopeAndService.RequiredService.SessionEntities.DeleteManyExistingAsync(expiredSessions, saveChanges: false,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 expired -= take;
@@ -164,7 +164,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var query = scopeAndService.RequiredService.Sessions.Where(session =>
+        var query = scopeAndService.RequiredService.SessionEntities.Where(session =>
             session.Token == token);
 
         if (!string.IsNullOrWhiteSpace(tenantId))
@@ -191,7 +191,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var existingSession = await scopeAndService.RequiredService.Sessions.FirstOrDefaultAsync(session =>
+        var existingSession = await scopeAndService.RequiredService.SessionEntities.FirstOrDefaultAsync(session =>
             session.UniversalUniqueId == universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         if (existingSession == null)
@@ -226,7 +226,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var hasToken = await scopeAndService.RequiredService.Sessions.AnyAsync(
+        var hasToken = await scopeAndService.RequiredService.SessionEntities.AnyAsync(
             session => session.TenantId == tenantId && session.Token == token, cancellationToken).ConfigureAwait(false);
 
         if (hasToken)
@@ -264,7 +264,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
             }
         }
 
-        await scopeAndService.RequiredService.Sessions.AddNewAsync(newSession, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await scopeAndService.RequiredService.SessionEntities.AddNewAsync(newSession, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         await ExceptionProtector.ExecuteTaskAsync(ExpireExceedingSessionsUsingPolicies(tenantId, accountId, newSession.DeviceIdentification.DeviceType,
             policies, cancellationToken)).ConfigureAwait(false);
@@ -287,7 +287,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var existingSession = await scopeAndService.RequiredService.Sessions.FirstOrDefaultAsync(session =>
+        var existingSession = await scopeAndService.RequiredService.SessionEntities.FirstOrDefaultAsync(session =>
             session.TenantId == tenantId && session.UniversalUniqueId == universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         if (existingSession == null)
@@ -295,7 +295,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
             throw new InvalidOperationException($"Invalid session {universalUniqueId}");
         }
 
-        var hasToken = await scopeAndService.RequiredService.Sessions.AnyAsync(session =>
+        var hasToken = await scopeAndService.RequiredService.SessionEntities.AnyAsync(session =>
             session.TenantId == tenantId && session.Token == token && session.UniversalUniqueId != universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         if (hasToken)
@@ -323,12 +323,12 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         var tokenSet = tokens.ToHashSet();
 
-        var existingSessions = await scopeAndService.RequiredService.Sessions.Where(session =>
+        var existingSessions = await scopeAndService.RequiredService.SessionEntities.Where(session =>
             session.TenantId == tenantId && tokenSet.Contains(session.Token)).ToListAsync(cancellationToken).ConfigureAwait(false);
 
         if (existingSessions.Count > 0)
         {
-            await scopeAndService.RequiredService.Sessions.DeleteManyExistingAsync(existingSessions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await scopeAndService.RequiredService.SessionEntities.DeleteManyExistingAsync(existingSessions, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -345,12 +345,12 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         var universalUniqueIdSet = universalUniqueIds.ToHashSet();
 
-        var existingSessions = await scopeAndService.RequiredService.Sessions.Where(session =>
+        var existingSessions = await scopeAndService.RequiredService.SessionEntities.Where(session =>
             session.TenantId == tenantId && universalUniqueIdSet.Contains(session.UniversalUniqueId)).ToListAsync(cancellationToken).ConfigureAwait(false);
 
         if (existingSessions.Count > 0)
         {
-            await scopeAndService.RequiredService.Sessions.DeleteManyExistingAsync(existingSessions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await scopeAndService.RequiredService.SessionEntities.DeleteManyExistingAsync(existingSessions, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -365,7 +365,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var existingSession = await scopeAndService.RequiredService.Sessions.FirstOrDefaultAsync(session =>
+        var existingSession = await scopeAndService.RequiredService.SessionEntities.FirstOrDefaultAsync(session =>
             session.TenantId == tenantId && session.UniversalUniqueId == universalUniqueId, cancellationToken).ConfigureAwait(false);
 
         return existingSession == null ? null : Map(existingSession);
@@ -383,7 +383,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var existingSessions = await scopeAndService.RequiredService.Sessions.Where(session => session.TenantId == tenantId)
+        var existingSessions = await scopeAndService.RequiredService.SessionEntities.Where(session => session.TenantId == tenantId)
             .SkipTakeByPage(pageIndex, pageSize).ToListAsync(cancellationToken).ConfigureAwait(false);
 
         return existingSessions.Select(session => Map(session)).ToList().AsReadOnly();
@@ -401,7 +401,7 @@ public sealed class EntityFrameworkSessionManager(IServiceProvider serviceProvid
 
         using var scopeAndService = _serviceProvider.CreateScopeAndGetRequiredService<SessionManagerEntityModelRepositoryContainer>();
 
-        var existingSessions = await scopeAndService.RequiredService.Sessions.Where(session =>
+        var existingSessions = await scopeAndService.RequiredService.SessionEntities.Where(session =>
             session.TenantId == tenantId && session.AccountId == accountId).ToListAsync(cancellationToken).ConfigureAwait(false);
 
         return existingSessions.Select(session => Map(session)).ToList().AsReadOnly();

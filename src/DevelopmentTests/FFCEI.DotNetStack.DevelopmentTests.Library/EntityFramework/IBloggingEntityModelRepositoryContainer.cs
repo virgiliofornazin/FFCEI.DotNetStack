@@ -7,9 +7,9 @@ namespace FFCEI.DotNetStack.DevelopmentTests.Library.EntityFramework;
 public interface IBloggingEntityModelRepositoryContainer
    : IEntityModelRepositoryContainer
 {
-    IEntityModelRepository<IBlog> Blogs { get; }
-    IEntityModelRepository<IBlogRow> BlogRows { get; }
-    IEntityModelRepository<IBlogData> BlogDatas { get; }
-    IEntityModelRepository<ITestAllDataTypes> TestModels { get; }
-    IEntityModelRepository<INullableTestAllDataTypes> NullableTestModels { get; }
+    IEntityModelRepository<IBlog> BlogEntities { get; }
+    IEntityModelRepository<IBlogRow> BlogRowEntities { get; }
+    IEntityModelRepository<IBlogData> BlogDataEntities { get; }
+    IEntityModelRepository<ITestAllDataTypes> TestAllDataTypesEntities { get; }
+    IEntityModelRepository<INullableTestAllDataTypes> NullableTestAllDataTypeEntities { get; }
 }

@@ -12,20 +12,20 @@ public class BloggingEntityModelRepositoryContainer(BloggingContext context)
 #endif
 {
 #if TEST_EFCORE_MAPPINGS
-    public IEntityModelRepository<IFullMapping> FullMappingModels => Repository<FullMapping, IFullMapping>(ref field);
-    public IReadOnlyEntityModelRepository<IFullMappingView> FullMappingViewModels => ReadOnlyRepository<FullMappingView, IFullMappingView>(ref field);
+    public IEntityModelRepository<IFullMapping> FullMappingEntities => Repository<FullMapping, IFullMapping>(ref field);
+    public IReadOnlyEntityModelRepository<IFullMappingView> FullMappingViewEntities => ReadOnlyRepository<FullMappingView, IFullMappingView>(ref field);
 #endif
 #if TEST_EFCORE_USE_INTERFACES
-    public IEntityModelRepository<IBlog> Blogs => Repository<Blog, IBlog>(ref field);
-    public IEntityModelRepository<IBlogRow> BlogRows => Repository<BlogRow, IBlogRow>(ref field);
-    public IEntityModelRepository<IBlogData> BlogDatas => Repository<BlogData, IBlogData>(ref field);
-    public IEntityModelRepository<ITestAllDataTypes> TestModels => Repository<TestAllDataTypes, ITestAllDataTypes>(ref field);
-    public IEntityModelRepository<INullableTestAllDataTypes> NullableTestModels => Repository<NullableTestAllDataTypes, INullableTestAllDataTypes>(ref field);
+    public IEntityModelRepository<IBlog> BlogEntities => Repository<Blog, IBlog>(ref field);
+    public IEntityModelRepository<IBlogRow> BlogRowEntities => Repository<BlogRow, IBlogRow>(ref field);
+    public IEntityModelRepository<IBlogData> BlogDataEntities => Repository<BlogData, IBlogData>(ref field);
+    public IEntityModelRepository<ITestAllDataTypes> TestAllDataTypesEntities => Repository<TestAllDataTypes, ITestAllDataTypes>(ref field);
+    public IEntityModelRepository<INullableTestAllDataTypes> NullableTestAllDataTypeEntities => Repository<NullableTestAllDataTypes, INullableTestAllDataTypes>(ref field);
 #else
-    public IEntityModelRepository<TestModel> TestModels => Repository(ref field);
-    public IEntityModelRepository<NullableTestModel> NullableTestModels => Repository(ref field);
-    public IEntityModelRepository<Blog> Blogs => Repository(ref field);
-    public IEntityModelRepository<BlogRow> BlogRows => Repository(ref field);
-    public IEntityModelRepository<BlogData> BlogDatas => Repository(ref field);
+    public IEntityModelRepository<TestAllDataTypes> TestAllDataTypesEntities => Repository(ref field);
+    public IEntityModelRepository<NullableTestAllDataTypes> NullableTestAllDataTypeEntities => Repository(ref field);
+    public IEntityModelRepository<Blog> BlogEntities => Repository(ref field);
+    public IEntityModelRepository<BlogRow> BlogRowEntities => Repository(ref field);
+    public IEntityModelRepository<BlogData> BlogDataEntities => Repository(ref field);
 #endif
 }

@@ -11,4 +11,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Authentication\" />
+    <Folder Include="Authorization\" />
+  </ItemGroup>
+
 </Project>
